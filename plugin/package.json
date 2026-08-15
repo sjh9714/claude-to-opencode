@@ -1,6 +1,6 @@
 {
   "name": "dsh-movein-permissions",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "DSH permission gate compiled from Claude Code permission rules (deny/ask), installed by dsh-movein",
   "license": "MIT",
   "type": "module",

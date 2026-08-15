@@ -30,6 +30,8 @@ Restart `dsh web`, then say "move my Claude Code setup over". The plugin exposes
   found: 4 skills · 3 MCP servers · 1 hook configs · 5 subagents · 878 sessions
 ```
 
+**[The full Claude Code → DSH compatibility matrix](docs/compat.md)** documents what every asset type does in DSH, measured against the source, including the parts no tool can automate. 完整的实测兼容性对照表见 [docs/compat.md](docs/compat.md)。
+
 ## What moves
 
 | Asset | How |
