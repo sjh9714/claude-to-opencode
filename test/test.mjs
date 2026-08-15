@@ -130,5 +130,25 @@ assert.match(patch2, /keep-me/, 'user rows preserved');
   assert.strictEqual(rendered[0].type, 'text');
 }
 
+// 6. reverse: DSH-born skills come back, moved-in symlinks and existing files are skipped
+{
+  // DSH-born skill (real dir), created directly in ~/.dsh/skills
+  const born = path.join(home, '.dsh', 'skills', 'dsh-native-skill');
+  fs.mkdirSync(born, { recursive: true });
+  fs.writeFileSync(path.join(born, 'SKILL.md'), '---\nname: dsh-native-skill\ndescription: d\n---\nb');
+  const revOut = execFileSync(process.execPath, [cli, project, '--reverse', '--apply'],
+    { env: { ...process.env, HOME: home, DSH_HOME: '' }, encoding: 'utf8' });
+  assert.match(revOut, /skill dsh-native-skill/);
+  assert.match(revOut, /skill my-skill\s*\.+\s*moved in from Claude Code originally/);
+  assert.match(revOut, /AGENTS\.md \(global\)\s*\.+\s*already points into ~\/.claude/);
+  assert.ok(fs.lstatSync(path.join(home, '.claude', 'skills', 'dsh-native-skill')).isSymbolicLink(), 'DSH-born skill linked back');
+  const manifest2 = JSON.parse(fs.readFileSync(path.join(home, '.dsh', 'movein-manifest.json'), 'utf8'));
+  assert.ok(manifest2.at(-1).moved.some((m) => m.label === 'skill dsh-native-skill'), 'reverse move recorded');
+  // idempotent
+  const revOut2 = execFileSync(process.execPath, [cli, project, '--reverse'],
+    { env: { ...process.env, HOME: home, DSH_HOME: '' }, encoding: 'utf8' });
+  assert.match(revOut2, /skill dsh-native-skill\s*\.+.*already exists/);
+}
+
 fs.rmSync(tmp, { recursive: true, force: true });
 console.log('ok - all assertions passed');

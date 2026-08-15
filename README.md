@@ -55,15 +55,27 @@ Skills are symlinked by default so edits keep flowing both ways. Pass `--copy` f
 
 `${VAR}` values in MCP `env` become `process.env` references, secrets are never inlined into the generated YAML.
 
+## Reverse moving day (dual boot)
+
+Skills you build inside DSH can come back:
+
+```sh
+npx dsh-movein --reverse            # what would come back
+npx dsh-movein --reverse --apply    # bring it back
+```
+
+DSH-born skills land in `.claude/skills` (symlinked, so both sides stay current), a DSH-born `AGENTS.md` links to `CLAUDE.md` when Claude Code has none. Assets that originally moved in from Claude Code are recognized and skipped, they never left. Use both tools, keep one setup. 在 DSH 里长出来的技能可以搬回 Claude Code，双栖不二选。
+
 ## What does not move
 
 - **Sessions**. Out of scope here. For conversation history see [dsh-chat-import](https://github.com/Nwflower/dsh-chat-import).
+- **DSH-born MCP and hook rows** (on `--reverse`). Hand-written cordis patches are not machine-reversible, the report says so instead of guessing.
 
 ## Roadmap
 
 | Next | What |
 |---|---|
-| [Reverse moving day](https://github.com/sjh9714/dsh-movein/issues/1) | Export DSH-born skills and config back to Claude Code, dual boot instead of a one way move |
+| ~~Reverse moving day~~ | **Shipped in v0.4.0**, `--reverse` brings DSH-born skills and instructions back |
 | [`--watch`](https://github.com/sjh9714/dsh-movein/issues/2) | Keep both sides in sync as your configs keep changing |
 | [More origins](https://github.com/sjh9714/dsh-movein/issues/3) | Codex and Gemini CLI setups moving into DSH the same way |
 
