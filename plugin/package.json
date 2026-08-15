@@ -1,13 +1,14 @@
 {
   "name": "dsh-movein-permissions",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Fine grained per tool permission rules for DeepSeek Harness (DSH). deny/ask lists in Claude Code rule syntax, enforced at the tools/pre-execute gate. Works standalone.",
   "license": "MIT",
   "type": "module",
   "main": "index.js",
   "files": [
     "index.js",
-    "README.md"
+    "README.md",
+    "cordis.patch.yml"
   ],
   "scripts": {
     "test": "node test.mjs"
@@ -26,5 +27,10 @@
     "type": "git",
     "url": "git+https://github.com/sjh9714/dsh-movein.git",
     "directory": "plugin"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
   }
 }
