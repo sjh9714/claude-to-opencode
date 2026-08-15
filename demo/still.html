@@ -1,0 +1,45 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>
+  html,body{width:1920px;height:1080px;overflow:hidden;background:#0d0f12;margin:0}
+  .win{position:absolute;left:270px;top:80px;width:1380px;border-radius:14px;box-shadow:0 24px 80px rgba(0,0,0,.55);overflow:hidden;background:#16181d;border:1px solid #2a2e36}
+  .tbar{height:44px;background:#1e2128;display:flex;align-items:center;padding:0 16px;gap:8px}
+  .dot{width:13px;height:13px;border-radius:50%}
+  .ti{margin-left:12px;color:#8b93a3;font:500 17px ui-sans-serif,system-ui}
+  #tbody{padding:24px 30px 30px;font:500 21px/1.66 ui-monospace,Menlo,Monaco,monospace;color:#d7dce6;white-space:pre-wrap}
+  .dim{color:#6b7383}.grn{color:#7ee08a}.arw{color:#e8c66a}.hdr{color:#9ecbff}.red{color:#ff7b72}.org{color:#f0a45d}
+</style></head>
+<body>
+<div class="win">
+  <div class="tbar">
+    <div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div>
+    <div class="ti">zsh — moving day</div>
+  </div>
+  <div id="tbody"><span class="dim">$ </span>npx dsh-movein
+<span class="hdr">📦 dsh-movein · Claude Code -> DeepSeek Harness moving estimate · 拎包入住</span>
+
+  <span class="grn">✓</span> CLAUDE.md (project)   <span class="dim">DSH reads it natively, nothing to do</span>
+  <span class="arw">→</span> CLAUDE.md (global)    link -> ~/.dsh/AGENTS.md
+  <span class="arw">→</span> skill computer-use    link -> ~/.dsh/skills/
+  <span class="arw">→</span> skill design-taste-frontend   link -> ~/.dsh/skills/
+  <span class="arw">→</span> skill handoff         link -> ~/.dsh/skills/
+  <span class="arw">→</span> skill orca-cli        link -> ~/.dsh/skills/
+  <span class="arw">→</span> agent code-reviewer   convert to skill -> ~/.dsh/skills/code-reviewer/
+  <span class="arw">→</span> agent db-migrator     convert to skill -> ~/.dsh/skills/db-migrator/
+  <span class="arw">→</span> MCP + hooks + permissions   write block -> ~/.dsh/cordis.patch.yml
+
+  <span class="dim">found: 4 skills · 3 MCP servers · 1 hook configs · 2 subagents · 8 permission rules · 42 sessions</span>
+  permissions: 3/5 deny+ask rules enforced in DSH, <span class="dim">'*' patterns match as a superset</span>
+    <span class="red">✗</span> not mapped, no DSH-side tool: WebFetch(domain:tracker.com) <span class="dim">(deny)</span>
+    <span class="red">✗</span> not mapped, no DSH-side tool: Task <span class="dim">(ask)</span>
+  <span class="dim">− allow rules stay with the DSH permission preset</span>
+  <span class="org">⚠</span> hook references $SLACK_WEBHOOK, <span class="dim">may be unset under DSH</span>
+  <span class="dim">○ sessions, out of scope, see dsh-chat-import for conversation history</span>
+
+  <span class="dim">dry run, nothing written. Re-run with</span> --apply <span class="dim">to move in.</span></div>
+</div>
+<script>
+window.DURATION=0;
+window.seek=()=>{};
+window.ready=(async()=>{await document.fonts.ready;})();
+</script>
+</body></html>
