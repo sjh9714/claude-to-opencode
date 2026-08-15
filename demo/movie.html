@@ -1,0 +1,167 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>
+  html,body{width:1920px;height:1080px;overflow:hidden;background:#0d0f12;margin:0}
+  #scene{position:relative;width:1920px;height:1080px;overflow:hidden}
+  #world{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0}
+  .win{position:absolute;border-radius:14px;box-shadow:0 24px 80px rgba(0,0,0,.55);overflow:hidden}
+  /* terminal */
+  #term{left:60px;top:120px;width:880px;height:840px;background:#16181d;border:1px solid #2a2e36}
+  .tbar{height:44px;background:#1e2128;display:flex;align-items:center;padding:0 16px;gap:8px}
+  .dot{width:13px;height:13px;border-radius:50%}
+  .tbar .ti{margin-left:12px;color:#8b93a3;font:500 17px ui-sans-serif,system-ui}
+  #tbody{padding:22px 26px;font:500 21px/1.62 ui-monospace,Menlo,Monaco,monospace;color:#d7dce6;white-space:pre-wrap}
+  .dim{color:#6b7383}.grn{color:#7ee08a}.arw{color:#e8c66a}.hdr{color:#9ecbff}
+  .ln{opacity:0}
+  /* dsh web */
+  #dsh{left:990px;top:120px;width:870px;height:840px;background:#101319;border:1px solid #262b35}
+  .dbar{height:52px;background:#161a22;display:flex;align-items:center;padding:0 18px;gap:10px;color:#aeb6c6;font:600 18px ui-sans-serif,system-ui;border-bottom:1px solid #232937}
+  .dbar .url{margin-left:auto;color:#5d6575;font:400 15px ui-monospace,Menlo,monospace}
+  #chat{position:absolute;top:52px;bottom:120px;left:0;right:0;padding:26px 28px;color:#98a1b3;font:400 18px/1.6 ui-sans-serif,system-ui}
+  .sysline{color:#5d6575;font-size:16px;margin-bottom:14px}
+  #composer{position:absolute;left:24px;right:24px;bottom:26px;height:64px;background:#171b24;border:1px solid #2b3140;border-radius:12px;display:flex;align-items:center;padding:0 20px;font:500 22px ui-monospace,Menlo,monospace;color:#e6eaf2}
+  #caret2{display:inline-block;width:11px;height:26px;background:#9ecbff;margin-left:2px}
+  #menu{position:absolute;left:24px;right:24px;bottom:104px;background:#1a1f2a;border:1px solid #313848;border-radius:12px;padding:10px 0;opacity:0}
+  .mhead{padding:8px 20px 10px;color:#5d6575;font:600 15px ui-sans-serif,system-ui;letter-spacing:.4px}
+  .mi{display:flex;align-items:center;gap:14px;padding:12px 20px;font:500 20px ui-monospace,Menlo,monospace;color:#dfe4ee;opacity:0}
+  .mi .desc{color:#6b7383;font:400 16px ui-sans-serif,system-ui;margin-left:auto}
+  .mi.sel{background:#232c3e}
+  .badge{font:600 13px ui-sans-serif,system-ui;color:#7ee08a;border:1px solid #2f5a38;border-radius:999px;padding:2px 10px}
+</style></head>
+<body>
+<div id="scene"><div id="world">
+
+  <div class="win" id="term">
+    <div class="tbar">
+      <div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div>
+      <div class="ti">zsh — moving day</div>
+    </div>
+    <div id="tbody"><span class="dim">$ </span><span id="cmd1"></span><span id="caret1" style="display:inline-block;width:11px;height:24px;background:#d7dce6;vertical-align:-3px"></span>
+<span class="ln" id="l0"><span class="hdr">📦 dsh-movein · Claude Code -> DSH · 拎包入住</span>
+</span><span class="ln" id="l1">  <span class="arw">→</span> CLAUDE.md (global)  link -> ~/.dsh/AGENTS.md
+</span><span class="ln" id="l2">  <span class="arw">→</span> skill computer-use  link -> ~/.dsh/skills/
+</span><span class="ln" id="l3">  <span class="arw">→</span> skill design-taste-frontend  link -> ~/.dsh/skills/
+</span><span class="ln" id="l4">  <span class="arw">→</span> skill handoff  link -> ~/.dsh/skills/
+</span><span class="ln" id="l5">  <span class="arw">→</span> MCP + hooks  block -> ~/.dsh/cordis.patch.yml
+</span><span class="ln" id="l6">
+  <span class="dim">found: 4 skills · 3 MCP · 1 hooks · 878 sessions</span>
+</span><span class="ln" id="l7">  <span class="dim">dry run, nothing written. --apply to move in.</span>
+
+</span><span class="ln" id="l8"><span class="dim">$ </span><span id="cmd2"></span>
+</span><span class="ln" id="l9">  <span class="grn">✓ CLAUDE.md   ✓ 4 skills   ✓ MCP servers   ✓ hooks</span>
+</span><span class="ln" id="l10">  <span class="grn">moved in.</span> <span class="dim">Verify with: dsh --profile web --dump-config</span>
+</span></div>
+  </div>
+
+  <div class="win" id="dsh">
+    <div class="dbar">🐳 DeepSeek Harness <span class="url">127.0.0.1:3080</span></div>
+    <div id="chat">
+      <div class="sysline">new session · ~/code/my-app</div>
+    </div>
+    <div id="menu">
+      <div class="mhead">SKILLS · just moved in from Claude Code</div>
+      <div class="mi" id="m0">/computer-use <span class="badge">imported</span><span class="desc">drive desktop apps</span></div>
+      <div class="mi" id="m1">/design-taste-frontend <span class="badge">imported</span><span class="desc">senior UI/UX rules</span></div>
+      <div class="mi" id="m2">/handoff <span class="badge">imported</span><span class="desc">session handoff notes</span></div>
+      <div class="mi" id="m3">/orca-cli <span class="badge">imported</span><span class="desc">orca worktrees & terminals</span></div>
+    </div>
+    <div id="composer"><span id="typed2"></span><span id="caret2"></span></div>
+  </div>
+
+</div></div>
+<script>
+const CMD1='npx dsh-movein', CMD2='npx dsh-movein --apply';
+const T={
+  type1:[300,1100], enter1:[1100,1250],
+  scan:[1250,3300],        // header + 6 report lines staggered
+  note:[3300,3700],
+  type2:[4200,5000], enter2:[5000,5150],
+  apply:[5150,6100],
+  panDSH:[6100,6900],
+  slash:[6900,7300],
+  menu:[7300,7900],
+  menuHold:[7900,9400],
+  exit:[9400,9800],
+};
+const DURATION=9800;
+const clamp01=v=>v<0?0:v>1?1:v;
+const prog=(t,a,b)=>clamp01((t-a)/(b-a));
+const seg=(t,a,b)=>t>=a&&t<b;
+const ease=x=>x<0.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
+const lerp=(a,b,x)=>a+(b-a)*x;
+const $=id=>document.getElementById(id);
+
+function pathAt(path,t,n){
+  for(let i=0;i<path.length-1;i++){
+    const a=path[i],b=path[i+1];
+    if(t>=a[0]&&t<=b[0]){const x=ease(prog(t,a[0],b[0]));
+      return Array.from({length:n},(_,k)=>lerp(a[k+1],b[k+1],x));}
+  }
+  const L=path[path.length-1];return Array.from({length:n},(_,k)=>L[k+1]);
+}
+// camera. terminal upper -> terminal lower -> dsh composer+menu
+const CAM=[
+  [0,               500,470,1.32],
+  [T.type2[0],      500,470,1.32],
+  [T.type2[0]+400,  500,640,1.32],
+  [T.panDSH[0],     500,640,1.32],
+  [T.panDSH[1],    1425,700,1.42],
+  [T.exit[0],      1425,700,1.42],
+  [DURATION,       1425,700,1.36],
+];
+
+// dry-run report lines l0..l7 stagger inside T.scan, l8..l10 in apply phase
+const SCAN_IDS=['l0','l1','l2','l3','l4','l5','l6'];
+
+function seek(t){
+  t=Math.max(0,Math.min(DURATION,t));
+  const [cx,cy,s]=pathAt(CAM,t,3);
+  $('world').style.transform=`translate(${960-cx*s}px,${540-cy*s}px) scale(${s})`;
+
+  // terminal typing
+  $('cmd1').textContent = t<T.type1[0]?'':CMD1.slice(0,Math.floor(prog(t,T.type1[0],T.type1[1])*CMD1.length));
+  $('caret1').style.opacity = t<T.enter1[1] ? ((Math.floor(t/380)%2)?0.15:1) : 0;
+
+  // dry-run lines
+  const span=(T.scan[1]-T.scan[0])/SCAN_IDS.length;
+  SCAN_IDS.forEach((id,i)=>{
+    const a=T.scan[0]+i*span;
+    $(id).style.opacity=ease(prog(t,a,a+220));
+  });
+  $('l7').style.opacity=ease(prog(t,T.note[0],T.note[1]));
+
+  // apply command + result
+  $('l8').style.opacity=t>=T.type2[0]?1:0;
+  $('cmd2').textContent = t<T.type2[0]?'':CMD2.slice(0,Math.floor(prog(t,T.type2[0],T.type2[1])*CMD2.length));
+  $('l9').style.opacity=ease(prog(t,T.apply[0],T.apply[0]+300));
+  $('l10').style.opacity=ease(prog(t,T.apply[0]+350,T.apply[0]+650));
+
+  // dsh window wakes up after apply
+  $('dsh').style.opacity=0.45+0.55*ease(prog(t,T.apply[0],T.panDSH[1]));
+
+  // composer slash
+  $('typed2').textContent = t>=T.slash[0]+150?'/':'';
+  $('caret2').style.opacity = t<T.slash[0] ? 0 : ((Math.floor(t/380)%2)?0.15:1);
+
+  // menu pop + items stagger, highlight walks down then rests on first
+  let mo=0,mty=14;
+  if(t>=T.menu[0]){const x=ease(prog(t,T.menu[0],T.menu[0]+250));mo=x;mty=14*(1-x);}
+  $('menu').style.opacity=mo;
+  $('menu').style.transform=`translateY(${mty}px)`;
+  ['m0','m1','m2','m3'].forEach((id,i)=>{
+    const a=T.menu[0]+150+i*130;
+    $(id).style.opacity=ease(prog(t,a,a+200));
+    $(id).classList.remove('sel');
+  });
+  if(t>=T.menu[1]){
+    const idx=Math.min(3,Math.floor(prog(t,T.menu[1],T.menuHold[0]+800)*4));
+    $('m'+idx).classList.add('sel');
+  }
+}
+window.DURATION=DURATION;
+window.ready=(async()=>{await document.fonts.ready;seek(0);})();
+if(new URLSearchParams(location.search).has('play')){
+  window.ready.then(()=>{const t0=performance.now();
+    (function loop(){seek((performance.now()-t0)%(DURATION+800));requestAnimationFrame(loop);})();});
+}
+</script>
+</body></html>

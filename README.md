@@ -4,6 +4,8 @@ Move your whole Claude Code setup into [DeepSeek Harness (DSH)](https://github.c
 
 从 Claude Code 拎包入住 DSH。一条命令搬完技能、MCP、hooks 和全局指令。
 
+![dsh-movein demo](https://raw.githubusercontent.com/sjh9714/dsh-movein/main/docs/demo.gif)
+
 ```sh
 npx dsh-movein            # dry run, shows the moving estimate
 npx dsh-movein --apply    # actually move in
