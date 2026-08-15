@@ -11,6 +11,14 @@ npx dsh-movein            # dry run, shows the moving estimate
 npx dsh-movein --apply    # actually move in
 ```
 
+Or install it as a DSH plugin and ask the agent to do the move for you:
+
+```sh
+dsh plugin --profile web add dsh-movein
+```
+
+Restart `dsh web`, then say "move my Claude Code setup over". The plugin exposes a `movein_from_claude_code` tool (dry run by default, `apply=true` to move).
+
 ```
 📦 dsh-movein · Claude Code -> DeepSeek Harness moving estimate · 拎包入住
 
@@ -52,6 +60,9 @@ Then restart `dsh web`. Counted, scanned and moved on this exact layout against 
 
 ## Notes
 
+- **Migration diff report.** Permission rules are never converted silently. The report says how many deny and ask rules are enforced, lists every rule that has no DSH-side tool to map to, and notes that `*` patterns match as a superset. Fail closed beats fail open.
+- **Hook environment scan.** The dry run scans hook commands for env vars DSH will not provide (`$CLAUDE_PROJECT_DIR` and `$CLAUDE_PLUGIN_ROOT` are substituted by the bridge, anything else unknown gets a warning) so hooks do not silently break on first fire.
+- **Manifest.** Every applied move is recorded in `~/.dsh/movein-manifest.json` with source and destination, so "where did this skill come from" stays answerable.
 - Dry run is the default. Nothing is written without `--apply`.
 - Re-running is safe. Existing links are skipped and the generated YAML block is replaced in place, your own rows are preserved.
 - Needed packages (`dsh-hooks-claude-code`, `dsh-hook-protocol`) are installed into the profile automatically, pinned to your dsh version.
@@ -67,6 +78,14 @@ Then restart `dsh web`. Counted, scanned and moved on this exact layout against 
 npx dsh-movein            # 预演，先看搬家清单
 npx dsh-movein --apply    # 正式入住
 ```
+
+也可以装成 DSH 插件，直接让 agent 帮你搬：
+
+```sh
+dsh plugin --profile web add dsh-movein
+```
+
+重启 `dsh web` 后说"帮我把 Claude Code 的配置搬过来"即可（`movein_from_claude_code` 工具，默认预演）。权限规则迁移会输出差异报告（几条原样生效、几条无法映射都列出来），hooks 里引用的未知环境变量在预演阶段就会警告，每次搬家都记录 manifest 便于溯源。
 
 搬什么
 

@@ -27,6 +27,6 @@ const project = projectArg ? path.resolve(projectArg) : process.cwd();
 
 const scanResult = scan({ project });
 const actions = planActions(scanResult, { copy });
-if (apply) applyActions(actions);
+if (apply) applyActions(actions, { scanResult });
 console.log(renderReport(scanResult, actions, { apply }));
 process.exit(actions.some((a) => a.status === 'error') ? 1 : 0);

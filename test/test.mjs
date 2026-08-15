@@ -17,8 +17,8 @@ fs.mkdirSync(path.join(home, '.claude', 'skills', 'my-skill'), { recursive: true
 fs.writeFileSync(path.join(home, '.claude', 'skills', 'my-skill', 'SKILL.md'), '---\nname: my-skill\ndescription: d\n---\nbody');
 fs.writeFileSync(path.join(home, '.claude', 'CLAUDE.md'), '# global rules');
 fs.writeFileSync(path.join(home, '.claude', 'settings.json'), JSON.stringify({
-  hooks: { SessionStart: [{ hooks: [{ type: 'command', command: 'echo hi' }] }] },
-  permissions: { allow: ['Bash(ls:*)'], deny: ["Bash(rm -rf:*)", "Read(*secrets*)"], ask: ['Write'] },
+  hooks: { SessionStart: [{ hooks: [{ type: 'command', command: 'echo $MY_SECRET_TOKEN $CLAUDE_PROJECT_DIR $HOME' }] }] },
+  permissions: { allow: ['Bash(ls:*)'], deny: ["Bash(rm -rf:*)", "Read(*secrets*)", 'WebFetch(domain:evil.com)'], ask: ['Write', 'Task'] },
 }));
 fs.mkdirSync(path.join(home, '.claude', 'agents'), { recursive: true });
 fs.writeFileSync(path.join(home, '.claude', 'agents', 'code-reviewer.md'),
@@ -46,10 +46,16 @@ for (const pkg of ['@deepseek-ai/dsh-hooks-claude-code', '@deepseek-ai/dsh-hook-
 const run = (extra = []) =>
   execFileSync(process.execPath, [cli, project, ...extra], { env: { ...process.env, HOME: home, DSH_HOME: '' }, encoding: 'utf8' });
 
-// 1. dry run writes nothing
+// 1. dry run writes nothing, diff report present
 const dry = run();
 assert.match(dry, /dry run, nothing written/);
 assert.match(dry, /3 MCP servers/);
+assert.match(dry, /permissions: 3\/5 deny\+ask rules enforced/, 'migration diff ratio');
+assert.match(dry, /not mapped, no DSH-side tool: WebFetch\(domain:evil\.com\) \(deny\)/);
+assert.match(dry, /not mapped, no DSH-side tool: Task \(ask\)/);
+assert.match(dry, /hook references \$MY_SECRET_TOKEN/, 'unknown hook env var warned');
+assert.ok(!dry.includes('$CLAUDE_PROJECT_DIR ('), 'substituted var not warned');
+assert.ok(!dry.includes('$HOME ('), 'common shell var not warned');
 assert.ok(!fs.existsSync(path.join(home, '.dsh', 'cordis.patch.yml')), 'dry run must not write patch');
 assert.ok(!fs.existsSync(path.join(home, '.dsh', 'skills')), 'dry run must not link skills');
 
@@ -70,6 +76,11 @@ assert.match(patch, /configPath: '.*settings\.json'/);
 assert.match(patch, /'dsh-movein-permissions'/);
 assert.match(patch, /- 'Bash\(rm -rf:\*\)'/, 'deny rules carried verbatim');
 assert.ok(!patch.includes('Bash(ls:*)'), 'allow rules stay out of the gate config');
+assert.ok(!patch.includes('WebFetch'), 'unmapped rules stay out of the gate config');
+const manifest = JSON.parse(fs.readFileSync(path.join(dsh, 'movein-manifest.json'), 'utf8'));
+assert.strictEqual(manifest.length, 1);
+assert.ok(manifest[0].moved.some((m) => m.kind === 'skill' && m.label === 'skill my-skill' && m.source.endsWith('my-skill')), 'skill move recorded');
+assert.ok(manifest[0].moved.some((m) => m.kind === 'agent' && m.dest.endsWith('code-reviewer')), 'agent move recorded');
 const skillMd = fs.readFileSync(path.join(dsh, 'skills', 'code-reviewer', 'SKILL.md'), 'utf8');
 assert.match(skillMd, /name: code-reviewer/, 'agent name kebab-cased');
 assert.match(skillMd, /description: 'Reviews diffs, one line per finding'/);
@@ -99,6 +110,24 @@ assert.match(patch2, /keep-me/, 'user rows preserved');
   const partial = fs.readFileSync(path.join(home, '.dsh', 'cordis.patch.yml'), 'utf8');
   assert.match(partial, /serverName: 'github'/, 'mcp rows still written');
   assert.ok(!partial.includes('dsh-hooks-claude-code'), 'hooks row NOT written when pkg missing');
+}
+
+// 5. plugin shell: raw tool registration + in-process dry run
+{
+  const { apply: shellApply } = await import('../shell/index.mjs');
+  let def = null;
+  shellApply({ tools: { register: (d) => { def = d; } } });
+  assert.strictEqual(def.name, 'movein_from_claude_code');
+  assert.strictEqual(def.parameters.type, 'object');
+  assert.strictEqual(typeof def.execute, 'function');
+  const oldHome = process.env.HOME, oldDsh = process.env.DSH_HOME;
+  process.env.HOME = home; process.env.DSH_HOME = '';
+  const report = await def.execute({ project });
+  process.env.HOME = oldHome; process.env.DSH_HOME = oldDsh ?? '';
+  assert.match(report, /dry run, nothing written/);
+  assert.match(report, /moving estimate/);
+  const rendered = def.output.render({}, report);
+  assert.strictEqual(rendered[0].type, 'text');
 }
 
 fs.rmSync(tmp, { recursive: true, force: true });

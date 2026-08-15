@@ -1,15 +1,23 @@
 {
   "name": "dsh-movein",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Move your whole Claude Code setup into DeepSeek Harness (DSH) with one command - skills, MCP servers, hooks, instructions. 从 Claude Code 拎包入住 DSH。",
   "license": "MIT",
   "type": "module",
+  "main": "shell/index.mjs",
   "bin": {
     "dsh-movein": "bin/cli.mjs"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
   },
   "files": [
     "bin",
     "lib",
+    "shell",
+    "cordis.patch.yml",
     "README.md"
   ],
   "engines": {
