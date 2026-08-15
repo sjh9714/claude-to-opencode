@@ -1,7 +1,7 @@
 {
   "name": "dsh-movein-permissions",
-  "version": "0.2.1",
-  "description": "DSH permission gate compiled from Claude Code permission rules (deny/ask), installed by dsh-movein",
+  "version": "0.2.2",
+  "description": "Fine grained per tool permission rules for DeepSeek Harness (DSH). deny/ask lists in Claude Code rule syntax, enforced at the tools/pre-execute gate. Works standalone.",
   "license": "MIT",
   "type": "module",
   "main": "index.js",
