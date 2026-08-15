@@ -29,6 +29,6 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/sjh9714/dsh-movein.git"
+    "url": "git+https://github.com/sjh9714/dsh-movein.git"
   }
 }
