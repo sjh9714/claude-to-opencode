@@ -50,6 +50,10 @@ Skills are symlinked by default so edits keep flowing both ways. Pass `--copy` f
 
 - **Sessions**. Out of scope here. For conversation history see [dsh-chat-import](https://github.com/Nwflower/dsh-chat-import).
 
+## See also
+
+- [dsh-handbook](https://github.com/Electricitysheep/dsh-handbook) chapter 1 has a good "dsh vs Claude Code" comparison, and its [ecosystem chapter](https://github.com/Electricitysheep/dsh-handbook/blob/main/docs/07-ecosystem.md) lists dsh-movein for the migration path.
+
 ## Verify
 
 ```sh
