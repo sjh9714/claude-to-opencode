@@ -1,0 +1,27 @@
+{
+  "name": "dsh-movein-permissions",
+  "version": "0.2.0",
+  "description": "DSH permission gate compiled from Claude Code permission rules (deny/ask), installed by dsh-movein",
+  "license": "MIT",
+  "type": "module",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node test.mjs"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "permissions",
+    "claude-code"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sjh9714/dsh-movein.git",
+    "directory": "plugin"
+  }
+}

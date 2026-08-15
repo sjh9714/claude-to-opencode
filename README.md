@@ -31,15 +31,15 @@ npx dsh-movein --apply    # actually move in
 | Skills (`.claude/skills`) | Symlinked into DSH skill roots. The `SKILL.md` format is compatible as is |
 | MCP servers (`.mcp.json`) | Converted to `dsh-mcp-client` rows in `~/.dsh/cordis.patch.yml`. Tool names (`mcp__server__tool`) stay identical |
 | Hooks (`settings.json`) | Wired through the first party `dsh-hooks-claude-code` bridge, your `hooks` config runs unchanged |
+| Subagents (`.claude/agents`) | Converted to DSH skills, the system prompt becomes the skill body |
+| Permission rules (`settings.json`) | `deny` and `ask` rules enforced at DSH's `tools/pre-execute` gate via the companion [dsh-movein-permissions](plugin/) plugin. `allow` rules stay with the DSH preset |
 
 Skills are symlinked by default so edits keep flowing both ways. Pass `--copy` for real copies.
 
 `${VAR}` values in MCP `env` become `process.env` references, secrets are never inlined into the generated YAML.
 
-## What does not move yet
+## What does not move
 
-- **Subagents** (`.claude/agents`). Planned, they will convert to skills.
-- **Permission rules**. Planned, via a `tools/pre-execute` bridge plugin.
 - **Sessions**. Out of scope here. For conversation history see [dsh-chat-import](https://github.com/Nwflower/dsh-chat-import).
 
 ## Verify
@@ -75,8 +75,10 @@ npx dsh-movein --apply    # 正式入住
 - 技能目录符号链接进 DSH 技能根，`SKILL.md` 格式直接兼容
 - `.mcp.json` 自动转换为 `dsh-mcp-client` 配置行，工具名 `mcp__server__tool` 完全一致
 - `hooks` 通过官方 `dsh-hooks-claude-code` 桥原样运行
+- 子代理（`.claude/agents`）自动转换为 DSH 技能
+- 权限规则的 `deny` 与 `ask` 通过配套插件 dsh-movein-permissions 在 `tools/pre-execute` 强制执行
 
-暂不搬的部分（规划中）为子代理与权限规则，会话历史请配合 [dsh-chat-import](https://github.com/Nwflower/dsh-chat-import) 使用。
+会话历史不在范围内，请配合 [dsh-chat-import](https://github.com/Nwflower/dsh-chat-import) 使用。
 
 默认预演，不加 `--apply` 不写任何文件。重复执行安全，生成块原地替换，你自己的配置行不受影响。
 

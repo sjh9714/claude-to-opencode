@@ -18,8 +18,11 @@ fs.writeFileSync(path.join(home, '.claude', 'skills', 'my-skill', 'SKILL.md'), '
 fs.writeFileSync(path.join(home, '.claude', 'CLAUDE.md'), '# global rules');
 fs.writeFileSync(path.join(home, '.claude', 'settings.json'), JSON.stringify({
   hooks: { SessionStart: [{ hooks: [{ type: 'command', command: 'echo hi' }] }] },
-  permissions: { allow: ['Bash(ls:*)'] },
+  permissions: { allow: ['Bash(ls:*)'], deny: ["Bash(rm -rf:*)", "Read(*secrets*)"], ask: ['Write'] },
 }));
+fs.mkdirSync(path.join(home, '.claude', 'agents'), { recursive: true });
+fs.writeFileSync(path.join(home, '.claude', 'agents', 'code-reviewer.md'),
+  "---\nname: Code_Reviewer\ndescription: Reviews diffs, one line per finding\ntools: Read, Grep\n---\nYou are a terse code reviewer.");
 fs.writeFileSync(path.join(home, '.claude.json'), JSON.stringify({
   mcpServers: { userserver: { command: 'uvx', args: ['server-x'], env: { TOKEN: '${MY_TOKEN}' } } },
 }));
@@ -34,7 +37,7 @@ fs.writeFileSync(path.join(project, '.mcp.json'), JSON.stringify({
 }));
 
 // fake dsh profile with both row packages already resolvable (no network install)
-for (const pkg of ['@deepseek-ai/dsh-hooks-claude-code', '@deepseek-ai/dsh-hook-protocol', '@deepseek-ai/dsh-mcp-client']) {
+for (const pkg of ['@deepseek-ai/dsh-hooks-claude-code', '@deepseek-ai/dsh-hook-protocol', '@deepseek-ai/dsh-mcp-client', 'dsh-movein-permissions']) {
   const d = path.join(home, '.dsh', 'profiles', 'web', 'node_modules', pkg);
   fs.mkdirSync(d, { recursive: true });
   fs.writeFileSync(path.join(d, 'package.json'), JSON.stringify({ name: pkg, version: '0.0.0' }));
@@ -64,6 +67,13 @@ assert.match(patch, /transport: streamable-http/);
 assert.match(patch, /TOKEN: !!js process\.env\.MY_TOKEN/, 'env var mapped, secret not inlined');
 assert.match(patch, /'@deepseek-ai\/dsh-hooks-claude-code'/);
 assert.match(patch, /configPath: '.*settings\.json'/);
+assert.match(patch, /'dsh-movein-permissions'/);
+assert.match(patch, /- 'Bash\(rm -rf:\*\)'/, 'deny rules carried verbatim');
+assert.ok(!patch.includes('Bash(ls:*)'), 'allow rules stay out of the gate config');
+const skillMd = fs.readFileSync(path.join(dsh, 'skills', 'code-reviewer', 'SKILL.md'), 'utf8');
+assert.match(skillMd, /name: code-reviewer/, 'agent name kebab-cased');
+assert.match(skillMd, /description: 'Reviews diffs, one line per finding'/);
+assert.match(skillMd, /terse code reviewer/, 'agent body carried into skill');
 
 // 3. idempotent re-apply: no duplicate block, existing links skipped
 fs.writeFileSync(path.join(dsh, 'cordis.patch.yml'), "- insert:\n    - id: user-row\n      name: 'keep-me'\n" + patch);
@@ -83,7 +93,7 @@ assert.match(patch2, /keep-me/, 'user rows preserved');
   let installerCalls = 0;
   applyActions(actions, { installer: () => { installerCalls++; return false; } });
   assert.strictEqual(installerCalls, 1, 'installer tried once for missing hooks pkg');
-  const patchAction = actions.find((a) => a.label === 'MCP servers + hooks');
+  const patchAction = actions.find((a) => a.label === 'MCP + hooks + permissions');
   assert.strictEqual(patchAction.status, 'error');
   assert.match(patchAction.note, /dsh-hooks-claude-code/);
   const partial = fs.readFileSync(path.join(home, '.dsh', 'cordis.patch.yml'), 'utf8');
