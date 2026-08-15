@@ -1,5 +1,12 @@
 # dsh-movein
 
+<p align="center">
+  <a href="https://www.npmjs.com/package/dsh-movein"><img alt="npm" src="https://img.shields.io/npm/v/dsh-movein?style=flat-square&color=4b6fff"></a>
+  <a href="https://github.com/sjh9714/dsh-movein/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/sjh9714/dsh-movein/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="LICENSE"><img alt="MIT" src="https://img.shields.io/badge/license-MIT-2EA44F?style=flat-square"></a>
+  <img alt="zero dependencies" src="https://img.shields.io/badge/dependencies-0-brightgreen?style=flat-square">
+</p>
+
 Move your whole Claude Code setup into [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness) with one command. Skills, MCP servers, hooks and instructions arrive together, so DSH feels like home from the first prompt.
 
 从 Claude Code 拎包入住 DSH。一条命令搬完技能、MCP、hooks 和全局指令。
@@ -51,6 +58,16 @@ Skills are symlinked by default so edits keep flowing both ways. Pass `--copy` f
 ## What does not move
 
 - **Sessions**. Out of scope here. For conversation history see [dsh-chat-import](https://github.com/Nwflower/dsh-chat-import).
+
+## Roadmap
+
+| Next | What |
+|---|---|
+| Reverse moving day | Export DSH-born skills and config back to Claude Code, dual boot instead of a one way move |
+| `--watch` | Keep both sides in sync as your configs keep changing |
+| More origins | Codex and Gemini CLI setups moving into DSH the same way |
+
+Star the repo to follow along, releases land fast here (three shipped on day one). 计划中：反向搬家（DSH 配置导回 Claude Code，双栖不二选）、--watch 双向同步、支持从 Codex/Gemini CLI 搬入。
 
 ## See also
 
