@@ -17,7 +17,10 @@
     "dsh-plugin",
     "deepseek-harness",
     "permissions",
-    "claude-code"
+    "claude-code",
+    "allowlist",
+    "security",
+    "permission-gate"
   ],
   "repository": {
     "type": "git",
