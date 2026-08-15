@@ -63,11 +63,11 @@ Skills are symlinked by default so edits keep flowing both ways. Pass `--copy` f
 
 | Next | What |
 |---|---|
-| Reverse moving day | Export DSH-born skills and config back to Claude Code, dual boot instead of a one way move |
-| `--watch` | Keep both sides in sync as your configs keep changing |
-| More origins | Codex and Gemini CLI setups moving into DSH the same way |
+| [Reverse moving day](https://github.com/sjh9714/dsh-movein/issues/1) | Export DSH-born skills and config back to Claude Code, dual boot instead of a one way move |
+| [`--watch`](https://github.com/sjh9714/dsh-movein/issues/2) | Keep both sides in sync as your configs keep changing |
+| [More origins](https://github.com/sjh9714/dsh-movein/issues/3) | Codex and Gemini CLI setups moving into DSH the same way |
 
-Star the repo to follow along, releases land fast here (three shipped on day one). 计划中：反向搬家（DSH 配置导回 Claude Code，双栖不二选）、--watch 双向同步、支持从 Codex/Gemini CLI 搬入。
+A thumbs up on an issue is a vote for what ships next. Star the repo to follow along, releases land fast here (three shipped on day one). 计划中：反向搬家（DSH 配置导回 Claude Code，双栖不二选）、--watch 双向同步、支持从 Codex/Gemini CLI 搬入。
 
 ## See also
 
