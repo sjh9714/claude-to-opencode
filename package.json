@@ -1,0 +1,34 @@
+{
+  "name": "dsh-movein",
+  "version": "0.1.0",
+  "description": "Move your whole Claude Code setup into DeepSeek Harness (DSH) with one command - skills, MCP servers, hooks, instructions. 从 Claude Code 拎包入住 DSH。",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "dsh-movein": "bin/cli.mjs"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node test/test.mjs"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "dsh-plugin",
+    "claude-code",
+    "migration",
+    "mcp",
+    "skills"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sjh9714/dsh-movein.git"
+  }
+}
