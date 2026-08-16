@@ -1,10 +1,13 @@
 # dsh-movein
 
+[中文](./README.zh.md)
+
 <p align="center">
   <a href="https://www.npmjs.com/package/dsh-movein"><img alt="npm" src="https://img.shields.io/npm/v/dsh-movein?style=flat-square&color=4b6fff"></a>
   <a href="https://github.com/sjh9714/dsh-movein/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/sjh9714/dsh-movein/actions/workflows/ci.yml/badge.svg"></a>
   <a href="LICENSE"><img alt="MIT" src="https://img.shields.io/badge/license-MIT-2EA44F?style=flat-square"></a>
   <img alt="zero dependencies" src="https://img.shields.io/badge/dependencies-0-brightgreen?style=flat-square">
+  <a href="https://www.npmjs.com/package/dsh-movein"><img alt="downloads" src="https://img.shields.io/npm/dm/dsh-movein?style=flat-square&color=8250df"></a>
 </p>
 
 Move your whole Claude Code setup into [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness) with one command. Skills, MCP servers, hooks and instructions arrive together, so DSH feels like home from the first prompt.
@@ -79,7 +82,7 @@ DSH-born skills land in `.claude/skills` (symlinked, so both sides stay current)
 | [`--watch`](https://github.com/sjh9714/dsh-movein/issues/2) | Keep both sides in sync as your configs keep changing |
 | [More origins](https://github.com/sjh9714/dsh-movein/issues/3) | Codex and Gemini CLI setups moving into DSH the same way |
 
-A thumbs up on an issue is a vote for what ships next. Star the repo to follow along, releases land fast here (three shipped on day one). 计划中：反向搬家（DSH 配置导回 Claude Code，双栖不二选）、--watch 双向同步、支持从 Codex/Gemini CLI 搬入。
+A thumbs up on an issue is a vote for what ships next. Releases land fast here, four shipped in the first two days. 计划中：反向搬家（DSH 配置导回 Claude Code，双栖不二选）、--watch 双向同步、支持从 Codex/Gemini CLI 搬入。
 
 ## See also
 
