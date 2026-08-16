@@ -18,11 +18,12 @@ Everything a Claude Code setup contains, and what actually happens to each piece
 | Sessions | **Hardest, avoid writing** | `~/.dsh/sessions` uses zstd-framed JSONL at `SESSION_FORMAT_VERSION = 0` with an explicit no-compatibility promise and strict event invariants. Import history as plugin-sourced recall messages, never by writing session files. For conversation history use [dsh-chat-import](https://github.com/Nwflower/dsh-chat-import) |
 | Memory / `~/.claude` misc | **Manual** | No DSH counterpart, carry what matters into `AGENTS.md` or skills |
 
-## Three traps measured the hard way
+## Four traps measured the hard way
 
 1. **A patch row whose package the profile cannot resolve makes `dsh web` boot fatally** (plugin tree failed to load), not a warning. Install first, write config rows only after the package resolves.
 2. **Satellite npm dist-tags lag the core.** The hooks bridge's `latest` was `0.0.1-rc.5` while dsh itself was `0.1.0-rc.6`. Pin installs to the host dsh version.
 3. **`@deepseek-ai/dsh-hook-protocol` is a peer the host install does not ship.** Installing the hooks bridge alone still fails at boot, install the protocol package alongside.
+4. **`dsh plugin add` never installs a release younger than 24 hours.** dsh forwards installs to pnpm, and pnpm 11 ships a default supply-chain cooldown (`minimumReleaseAge` = 1440 minutes). A fresh `dsh plugin add <pkg>` silently picks the newest version older than a day and prints `(x.y.z is available)` for the one it skipped. Measured here: with 0.5.0 published 2h ago and 0.4.0 published 20h ago, a clean profile got 0.3.2 (30h old), reproduced independently on two machines. `npx <pkg>` goes through npm and gets `latest` immediately. If you ship a plugin, publish at least a day before you announce.
 
 `npx dsh-movein` automates every row of this table that can be automated, with a dry run first and a migration diff report for the rules that cannot map.
 
