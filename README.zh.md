@@ -82,6 +82,10 @@ npx dsh-movein doctor
 
 搬进来的技能不是免费的，技能目录以 system-reminder 注入每个请求，固定 143 token，每个技能约 28 token。搬家前先精简，实测数据与复现脚本见 [docs/token-bill.md](./docs/token-bill.md)。
 
+## 相关
+
+搬完家看看钱花在哪：[dsh-lean](https://github.com/sjh9714/dsh-lean) 逐请求审计会话的缓存命中拆分，并把 DSH 提示词前缀压掉 53%。`npx dsh-lean audit`，什么都不装。
+
 ## 许可
 
 MIT

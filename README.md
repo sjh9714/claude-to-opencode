@@ -171,6 +171,10 @@ npx dsh-movein doctor     # 搬完随时体检
 
 [![Star History Chart](https://api.star-history.com/svg?repos=sjh9714/dsh-movein&type=Date)](https://star-history.com/#sjh9714/dsh-movein&Date)
 
+## Related
+
+After moving in, see where your tokens go: [dsh-lean](https://github.com/sjh9714/dsh-lean) audits a session's cache split per request and trims the DSH prompt prefix 53%. `npx dsh-lean audit`, nothing installed.
+
 ## License
 
 MIT
