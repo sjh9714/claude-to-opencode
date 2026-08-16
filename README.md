@@ -10,6 +10,10 @@
   <a href="https://www.npmjs.com/package/dsh-movein"><img alt="downloads" src="https://img.shields.io/npm/dm/dsh-movein?style=flat-square&color=8250df"></a>
 </p>
 
+<p align="center">
+  Listed in <a href="https://github.com/awesome-dsh-plugin/awesome-dsh-plugin">awesome-dsh-plugin</a> · <a href="https://github.com/0xsline/awesome-deepseek-harness">awesome-deepseek-harness</a> · cited by <a href="https://github.com/Electricitysheep/dsh-handbook">dsh-handbook</a>
+</p>
+
 Move your whole Claude Code setup into [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness) with one command. Skills, MCP servers, hooks and instructions arrive together, so DSH feels like home from the first prompt.
 
 从 Claude Code 拎包入住 DSH。一条命令搬完技能、MCP、hooks 和全局指令。
@@ -162,6 +166,10 @@ npx dsh-movein doctor     # 搬完随时体检
 会话历史不在范围内，请配合 [dsh-chat-import](https://github.com/Nwflower/dsh-chat-import) 使用。
 
 默认预演，不加 `--apply` 不写任何文件。重复执行安全，生成块原地替换，你自己的配置行不受影响。密钥永不写入生成的 YAML，预演阶段还会对疑似明文密钥告警。
+
+## Star history
+
+[![Star History Chart](https://api.star-history.com/svg?repos=sjh9714/dsh-movein&type=Date)](https://star-history.com/#sjh9714/dsh-movein&Date)
 
 ## License
 
