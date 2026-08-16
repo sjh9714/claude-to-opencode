@@ -17,12 +17,22 @@ fs.mkdirSync(path.join(home, '.claude', 'skills', 'my-skill'), { recursive: true
 fs.writeFileSync(path.join(home, '.claude', 'skills', 'my-skill', 'SKILL.md'), '---\nname: my-skill\ndescription: d\n---\nbody');
 fs.writeFileSync(path.join(home, '.claude', 'CLAUDE.md'), '# global rules');
 fs.writeFileSync(path.join(home, '.claude', 'settings.json'), JSON.stringify({
-  hooks: { SessionStart: [{ hooks: [{ type: 'command', command: 'echo $MY_SECRET_TOKEN $CLAUDE_PROJECT_DIR $HOME' }] }] },
+  hooks: { SessionStart: [{ hooks: [
+    { type: 'command', command: 'echo $MY_SECRET_TOKEN $CLAUDE_PROJECT_DIR $HOME' },
+    { type: 'command', command: 'curl -H "Authorization: ghp_abcdefghijklmnopqrst1234"' },
+  ] }] },
   permissions: { allow: ['Bash(ls:*)'], deny: ["Bash(rm -rf:*)", "Read(*secrets*)", 'WebFetch(domain:evil.com)'], ask: ['Write', 'Task'] },
 }));
 fs.mkdirSync(path.join(home, '.claude', 'agents'), { recursive: true });
 fs.writeFileSync(path.join(home, '.claude', 'agents', 'code-reviewer.md'),
   "---\nname: Code_Reviewer\ndescription: Reviews diffs, one line per finding\ntools: Read, Grep\n---\nYou are a terse code reviewer.");
+fs.mkdirSync(path.join(home, '.claude', 'commands'), { recursive: true });
+fs.writeFileSync(path.join(home, '.claude', 'commands', 'ship-it.md'),
+  "---\ndescription: Run tests then commit\nargument-hint: [message]\n---\nRun the test suite, then commit with $ARGUMENTS.");
+// skill whose unquoted description colon makes DSH drop it silently (#1401)
+fs.mkdirSync(path.join(home, '.claude', 'skills', 'risky-skill'), { recursive: true });
+fs.writeFileSync(path.join(home, '.claude', 'skills', 'risky-skill', 'SKILL.md'),
+  "---\nname: risky-skill\ndescription: Priority order: check the cache first\n---\nbody");
 fs.writeFileSync(path.join(home, '.claude.json'), JSON.stringify({
   mcpServers: { userserver: { command: 'uvx', args: ['server-x'], env: { TOKEN: '${MY_TOKEN}' } } },
 }));
@@ -53,6 +63,10 @@ assert.match(dry, /3 MCP servers/);
 assert.match(dry, /permissions: 3\/5 deny\+ask rules enforced/, 'migration diff ratio');
 assert.match(dry, /not mapped, no DSH-side tool: WebFetch\(domain:evil\.com\) \(deny\)/);
 assert.match(dry, /not mapped, no DSH-side tool: Task \(ask\)/);
+assert.match(dry, /3 skills · 1 commands/, 'commands counted');
+assert.match(dry, /command \/ship-it\s*\.+\s*convert to user-invocable skill/);
+assert.match(dry, /⚠ skill risky-skill, unquoted ": " in description.*#1401/, 'silent-drop skill warned');
+assert.match(dry, /⚠ secret-looking value in global hook command/, 'plaintext secret warned');
 assert.match(dry, /hook references \$MY_SECRET_TOKEN/, 'unknown hook env var warned');
 assert.ok(!dry.includes('$CLAUDE_PROJECT_DIR ('), 'substituted var not warned');
 assert.ok(!dry.includes('$HOME ('), 'common shell var not warned');
@@ -85,6 +99,13 @@ const skillMd = fs.readFileSync(path.join(dsh, 'skills', 'code-reviewer', 'SKILL
 assert.match(skillMd, /name: code-reviewer/, 'agent name kebab-cased');
 assert.match(skillMd, /description: 'Reviews diffs, one line per finding'/);
 assert.match(skillMd, /terse code reviewer/, 'agent body carried into skill');
+assert.match(out, /open a NEW dsh session/, 'catalog snapshot reminder shown');
+const cmdSkill = fs.readFileSync(path.join(dsh, 'skills', 'ship-it', 'SKILL.md'), 'utf8');
+assert.match(cmdSkill, /name: ship-it/, 'command converted to skill');
+assert.match(cmdSkill, /arguments: \[message\]/, 'argument-hint carried over');
+assert.match(cmdSkill, /\$ARGUMENTS/, 'arguments note present');
+assert.match(cmdSkill, /commit with \$ARGUMENTS/, 'command body carried into skill');
+assert.ok(manifest[0].moved.some((m) => m.kind === 'command' && m.dest.endsWith('ship-it')), 'command move recorded');
 
 // 3. idempotent re-apply: no duplicate block, existing links skipped
 fs.writeFileSync(path.join(dsh, 'cordis.patch.yml'), "- insert:\n    - id: user-row\n      name: 'keep-me'\n" + patch);
@@ -148,6 +169,46 @@ assert.match(patch2, /keep-me/, 'user rows preserved');
   const revOut2 = execFileSync(process.execPath, [cli, project, '--reverse'],
     { env: { ...process.env, HOME: home, DSH_HOME: '' }, encoding: 'utf8' });
   assert.match(revOut2, /skill dsh-native-skill\s*\.+.*already exists/);
+}
+
+// 7. doctor: flags the silently-dropped skill, exits 1, packages checked
+{
+  let doc = '', code = 0;
+  try {
+    doc = execFileSync(process.execPath, [cli, 'doctor', project],
+      { env: { ...process.env, HOME: home, DSH_HOME: '' }, encoding: 'utf8' });
+  } catch (e) { doc = e.stdout; code = e.status; }
+  assert.strictEqual(code, 1, 'doctor exits 1 when a check fails');
+  assert.match(doc, /✗ skill risky-skill, unquoted ": "/, 'moved silent-drop skill flagged');
+  assert.match(doc, /✓ package @deepseek-ai\/dsh-mcp-client, resolvable/);
+  assert.match(doc, /✓ package dsh-movein-permissions, resolvable/);
+  assert.match(doc, /✓ moved assets/, 'manifest destinations verified');
+  assert.match(doc, /NEW session/, 'catalog snapshot reminder');
+}
+
+// 8. restore: corrupted patch comes back from the newest backup
+{
+  const patchPath = path.join(home, '.dsh', 'cordis.patch.yml');
+  fs.writeFileSync(patchPath, 'corrupted by hand\n');
+  const out7 = execFileSync(process.execPath, [cli, 'restore'],
+    { env: { ...process.env, HOME: home, DSH_HOME: '' }, encoding: 'utf8' });
+  assert.match(out7, /restored cordis\.patch\.yml from/);
+  const restored = fs.readFileSync(patchPath, 'utf8');
+  assert.match(restored, /keep-me/, 'pre-overwrite content restored');
+  assert.ok(!restored.includes('corrupted by hand'));
+}
+
+// 9. --emit-rules: dsh-permission-rules YAML from CC deny/ask rules
+{
+  const rules = execFileSync(process.execPath, [cli, project, '--emit-rules'],
+    { env: { ...process.env, HOME: home, DSH_HOME: '' }, encoding: 'utf8' });
+  assert.match(rules, /REVIEW BEFORE USE/);
+  assert.match(rules, /tools: \[bash, pwsh\], params: \{ command: "rm -rf\*" \}/, 'Bash glob mapped');
+  assert.match(rules, /tools: \[read\], paths: \["\*secrets\*"\]/, 'Read path mapped');
+  assert.match(rules, /tools: \[write\] \}\n    action: ask/, 'bare Write ask rule');
+  assert.match(rules, /# no DSH equivalent for WebFetch\(domain:evil\.com\) \(deny\), skipped/);
+  assert.match(rules, /# no DSH equivalent for Task \(ask\), skipped/);
+  assert.match(rules, /reason: "migrated from Claude Code deny rule: Bash\(rm -rf:\*\)"/);
 }
 
 fs.rmSync(tmp, { recursive: true, force: true });

@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 import path from 'node:path';
+import os from 'node:os';
 import { scan } from '../lib/scan.mjs';
-import { planActions, applyActions, writeManifest } from '../lib/apply.mjs';
+import { planActions, applyActions, writeManifest, restoreLatestBackup, emitRules } from '../lib/apply.mjs';
 import { renderReport } from '../lib/report.mjs';
 import { scanReverse, planReverseActions, renderReverseReport } from '../lib/reverse.mjs';
+import { runDoctor, renderDoctor } from '../lib/doctor.mjs';
 
 const args = process.argv.slice(2);
 if (args.includes('--help') || args.includes('-h')) {
@@ -11,22 +13,44 @@ if (args.includes('--help') || args.includes('-h')) {
 
 Usage: npx dsh-movein [projectDir] [options]
 
-Options:
-  --apply     actually move (default is a dry run)
-  --copy      copy skills instead of symlinking
-  --reverse   bring DSH-born skills and instructions back to Claude Code (dual boot)
-  -h, --help  this help
+Commands:
+  (default)   scan and show the moving estimate, --apply to move in
+  doctor      verify a finished move (skills loaded, packages resolvable, matcher case)
+  restore     put back the newest cordis.patch.yml backup
 
-Moves: global CLAUDE.md, skills, MCP servers (.mcp.json), hooks.
-Project CLAUDE.md needs no move, DSH reads it natively.`);
+Options:
+  --apply       actually move (default is a dry run)
+  --copy        copy skills instead of symlinking
+  --reverse     bring DSH-born skills and instructions back to Claude Code (dual boot)
+  --emit-rules  print your deny/ask rules in dsh-permission-rules YAML and exit
+  -h, --help    this help
+
+Moves: global CLAUDE.md, skills, slash commands, MCP servers (.mcp.json), hooks,
+subagents, permission rules. Project CLAUDE.md needs no move, DSH reads it natively.`);
   process.exit(0);
 }
 
 const apply = args.includes('--apply');
 const copy = args.includes('--copy');
 const reverse = args.includes('--reverse');
-const projectArg = args.find((a) => !a.startsWith('-'));
-const project = projectArg ? path.resolve(projectArg) : process.cwd();
+const positionals = args.filter((a) => !a.startsWith('-'));
+const command = ['doctor', 'restore'].includes(positionals[0]) ? positionals.shift() : null;
+const project = positionals[0] ? path.resolve(positionals[0]) : process.cwd();
+
+if (command === 'doctor') {
+  const checks = runDoctor({ project });
+  console.log(renderDoctor(checks));
+  process.exit(checks.some((c) => c.level === 'bad') ? 1 : 0);
+}
+if (command === 'restore') {
+  const src = restoreLatestBackup(process.env.DSH_HOME || path.join(os.homedir(), '.dsh'));
+  console.log(src ? `restored cordis.patch.yml from ${src}` : 'no backups found under ~/.dsh/movein-backups');
+  process.exit(src ? 0 : 1);
+}
+if (args.includes('--emit-rules')) {
+  process.stdout.write(emitRules(scan({ project }).permissions));
+  process.exit(0);
+}
 
 if (reverse) {
   const rev = scanReverse({ project });
