@@ -18,6 +18,8 @@ Everything a Claude Code setup contains, and what actually happens to each piece
 | Sessions | **Hardest, avoid writing** | `~/.dsh/sessions` uses zstd-framed JSONL at `SESSION_FORMAT_VERSION = 0` with an explicit no-compatibility promise and strict event invariants. Import history as plugin-sourced recall messages, never by writing session files. For conversation history use [dsh-chat-import](https://github.com/Nwflower/dsh-chat-import) |
 | Memory / `~/.claude` misc | **Manual** | No DSH counterpart, carry what matters into `AGENTS.md` or skills |
 
+> rc.7 note (2026-08-17, day of release). The full flow was re-verified against `0.1.0-rc.7` within hours of it landing on npm, plugin boot, `--apply`, composed `dsh-mcp-client` rows and `doctor` all pass unchanged. The table below was measured on rc.6 source and still holds.
+
 ## Four traps measured the hard way
 
 1. **A patch row whose package the profile cannot resolve makes `dsh web` boot fatally** (plugin tree failed to load), not a warning. Install first, write config rows only after the package resolves.

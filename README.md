@@ -129,7 +129,7 @@ A thumbs up on an issue is a vote for what ships next. Releases land fast here, 
 dsh --profile web --dump-config | grep -E "mcp-|cc-hooks"
 ```
 
-Then restart `dsh web`. Counted, scanned and moved on this exact layout against dsh `0.1.0-rc.6`.
+Then restart `dsh web`. Counted, scanned and moved on this exact layout against dsh `0.1.0-rc.6`, re-verified end to end on `0.1.0-rc.7` the day it shipped (boot, apply, composed MCP rows, doctor).
 
 ## Notes
 
