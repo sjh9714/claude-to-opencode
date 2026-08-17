@@ -64,6 +64,15 @@ Skills are symlinked by default so edits keep flowing both ways. Pass `--copy` f
 
 `${VAR}` values in MCP `env` become `process.env` references, secrets are never inlined into the generated YAML.
 
+## Moving in from Codex
+
+```sh
+npx dsh-movein --from codex            # dry run
+npx dsh-movein --from codex --apply    # move in
+```
+
+Scans `~/.codex` instead: `AGENTS.md` links to `~/.dsh/AGENTS.md`, custom prompts (`~/.codex/prompts`) convert to user-invocable skills, and `mcp_servers` from `config.toml` become `dsh-mcp-client` rows. Sessions stay with [dsh-chat-import](https://github.com/Nwflower/dsh-chat-import), `approval_policy`/sandbox settings stay with the DSH presets. opencode and pi origins are next, say what your setup looks like on [#3](https://github.com/sjh9714/dsh-movein/issues/3).
+
 ## Reverse moving day (dual boot)
 
 Skills you build inside DSH can come back:
@@ -81,7 +90,7 @@ DSH-born skills land in `.claude/skills` (symlinked, so both sides stay current)
 npx dsh-movein doctor
 ```
 
-A post-move health check, run it any time. It verifies that every recorded destination still exists, that no moved skill has the frontmatter shape DSH's YAML parser silently drops ([#1401](https://github.com/deepseek-ai/deepseek-harness/discussions/1401)), that every package referenced in `cordis.patch.yml` still resolves (an unresolvable row is a fatal boot in DSH, not a warning), and that hook matchers will not miss DSH's lowercase tool names ([#582](https://github.com/deepseek-ai/deepseek-harness/issues/582)).
+A post-move health check, run it any time. It verifies that every recorded destination still exists, that no moved skill has the frontmatter shape DSH's YAML parser silently drops ([#1401](https://github.com/deepseek-ai/deepseek-harness/discussions/1401)), that every package referenced in `cordis.patch.yml` still resolves (an unresolvable row is a fatal boot in DSH, not a warning), and that no hook is silently dead, a matcher that misses DSH's lowercase tool names ([#582](https://github.com/deepseek-ai/deepseek-harness/issues/582)), an event outside the 7 the bridge maps, or a non-command hook type the bridge skips.
 
 If an apply left you worse off, `npx dsh-movein restore` puts back the newest `cordis.patch.yml` backup. A backup is taken automatically before every write.
 
@@ -104,7 +113,8 @@ If an apply left you worse off, `npx dsh-movein restore` puts back the newest `c
 |---|---|
 | ~~Reverse moving day~~ | **Shipped in v0.4.0**, `--reverse` brings DSH-born skills and instructions back |
 | ~~`doctor`~~ | **Shipped in v0.5.0**, post-move health check plus `restore` from automatic backups |
-| [More origins](https://github.com/sjh9714/dsh-movein/issues/3) | Codex and Gemini CLI setups moving into DSH the same way |
+| ~~Codex origin~~ | **Shipped in v0.6.0**, `--from codex` moves a Codex CLI setup the same way |
+| [More origins](https://github.com/sjh9714/dsh-movein/issues/3) | opencode and pi next, tell us what your setup looks like |
 | [`--watch`](https://github.com/sjh9714/dsh-movein/issues/2) | On hold. dsh-chat-import shipped a sync panel that covers much of this, details on the issue |
 
 A thumbs up on an issue is a vote for what ships next. Releases land fast here, four shipped in the first two days. 计划中：反向搬家（DSH 配置导回 Claude Code，双栖不二选）、--watch 双向同步、支持从 Codex/Gemini CLI 搬入。

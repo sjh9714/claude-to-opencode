@@ -17,10 +17,14 @@ fs.mkdirSync(path.join(home, '.claude', 'skills', 'my-skill'), { recursive: true
 fs.writeFileSync(path.join(home, '.claude', 'skills', 'my-skill', 'SKILL.md'), '---\nname: my-skill\ndescription: d\n---\nbody');
 fs.writeFileSync(path.join(home, '.claude', 'CLAUDE.md'), '# global rules');
 fs.writeFileSync(path.join(home, '.claude', 'settings.json'), JSON.stringify({
-  hooks: { SessionStart: [{ hooks: [
-    { type: 'command', command: 'echo $MY_SECRET_TOKEN $CLAUDE_PROJECT_DIR $HOME' },
-    { type: 'command', command: 'curl -H "Authorization: ghp_abcdefghijklmnopqrst1234"' },
-  ] }] },
+  hooks: {
+    SessionStart: [{ hooks: [
+      { type: 'command', command: 'echo $MY_SECRET_TOKEN $CLAUDE_PROJECT_DIR $HOME' },
+      { type: 'command', command: 'curl -H "Authorization: ghp_abcdefghijklmnopqrst1234"' },
+    ] }],
+    Notification: [{ hooks: [{ type: 'command', command: 'say ping' }] }],
+    PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'prompt', prompt: 'careful' }] }],
+  },
   permissions: { allow: ['Bash(ls:*)'], deny: ["Bash(rm -rf:*)", "Read(*secrets*)", 'WebFetch(domain:evil.com)'], ask: ['Write', 'Task'] },
 }));
 fs.mkdirSync(path.join(home, '.claude', 'agents'), { recursive: true });
@@ -68,6 +72,9 @@ assert.match(dry, /command \/ship-it\s*\.+\s*convert to user-invocable skill/);
 assert.match(dry, /⚠ skill risky-skill, unquoted ": " in description.*#1401/, 'silent-drop skill warned');
 assert.match(dry, /⚠ secret-looking value in global hook command/, 'plaintext secret warned');
 assert.match(dry, /hook references \$MY_SECRET_TOKEN/, 'unknown hook env var warned');
+assert.match(dry, /hook Notification \(global settings\): event is not among the 7/, 'unbridged event warned');
+assert.match(dry, /hook PreToolUse \(global settings\): type "prompt" is skipped/, 'non-command hook warned');
+assert.ok(!dry.includes('hook SessionStart (global settings): event'), 'bridged event not flagged');
 assert.ok(!dry.includes('$CLAUDE_PROJECT_DIR ('), 'substituted var not warned');
 assert.ok(!dry.includes('$HOME ('), 'common shell var not warned');
 assert.ok(!fs.existsSync(path.join(home, '.dsh', 'cordis.patch.yml')), 'dry run must not write patch');
@@ -209,6 +216,72 @@ assert.match(patch2, /keep-me/, 'user rows preserved');
   assert.match(rules, /# no DSH equivalent for WebFetch\(domain:evil\.com\) \(deny\), skipped/);
   assert.match(rules, /# no DSH equivalent for Task \(ask\), skipped/);
   assert.match(rules, /reason: "migrated from Claude Code deny rule: Bash\(rm -rf:\*\)"/);
+}
+
+// 10. codex origin: config.toml MCP + AGENTS.md + prompts move in
+{
+  const { parseCodexMcpServers } = await import('../lib/codex.mjs');
+  const parsed = parseCodexMcpServers([
+    '# top comment',
+    'model = "gpt-5.3"',
+    '[mcp_servers.github]',
+    'command = "npx"',
+    'args = ["-y", "server-gh"]',
+    'env = { TOKEN = "${GH}" }',
+    '[mcp_servers."with-dots"]',
+    "command = 'uvx'",
+    '[mcp_servers."with-dots".env]',
+    'KEY = "v"',
+    '[other_table]',
+    'command = "should-not-leak"',
+  ].join('\n'));
+  assert.deepStrictEqual(parsed.github, { command: 'npx', args: ['-y', 'server-gh'], env: { TOKEN: '${GH}' } });
+  assert.deepStrictEqual(parsed['with-dots'], { command: 'uvx', env: { KEY: 'v' } });
+  assert.strictEqual(Object.keys(parsed).length, 2, 'non-mcp tables ignored');
+
+  const home2 = path.join(tmp, 'home-codex');
+  fs.mkdirSync(path.join(home2, '.codex', 'prompts'), { recursive: true });
+  fs.writeFileSync(path.join(home2, '.codex', 'AGENTS.md'), '# codex global rules');
+  fs.writeFileSync(path.join(home2, '.codex', 'prompts', 'review.md'), 'Review the diff carefully.');
+  fs.writeFileSync(path.join(home2, '.codex', 'config.toml'),
+    '[mcp_servers.gh]\ncommand = "npx"\nargs = ["-y", "server-gh"]\n');
+  fs.mkdirSync(path.join(home2, '.codex', 'sessions', '2026', '08'), { recursive: true });
+  fs.writeFileSync(path.join(home2, '.codex', 'sessions', '2026', '08', 'a.jsonl'), '{}');
+  for (const pkg of ['@deepseek-ai/dsh-mcp-client']) {
+    const d = path.join(home2, '.dsh', 'profiles', 'web', 'node_modules', pkg);
+    fs.mkdirSync(d, { recursive: true });
+    fs.writeFileSync(path.join(d, 'package.json'), JSON.stringify({ name: pkg, version: '0.0.0' }));
+  }
+  const proj2 = path.join(tmp, 'proj-codex');
+  fs.mkdirSync(proj2, { recursive: true });
+  const runC = (extra = []) =>
+    execFileSync(process.execPath, [cli, proj2, '--from', 'codex', ...extra],
+      { env: { ...process.env, HOME: home2, DSH_HOME: '' }, encoding: 'utf8' });
+
+  const dryC = runC();
+  assert.match(dryC, /Codex -> DeepSeek Harness moving estimate/, 'codex origin in header');
+  assert.match(dryC, /AGENTS\.md \(global\)/, 'codex AGENTS.md planned');
+  assert.match(dryC, /prompt \/review\s*\.+\s*convert to user-invocable skill/, 'prompt labeled');
+  assert.match(dryC, /1 MCP servers/);
+  assert.match(dryC, /1 sessions/, 'codex sessions counted');
+
+  const outC = runC(['--apply']);
+  assert.match(outC, /moved in/);
+  const dsh2 = path.join(home2, '.dsh');
+  assert.strictEqual(fs.readlinkSync(path.join(dsh2, 'AGENTS.md')), path.join(home2, '.codex', 'AGENTS.md'));
+  const promptSkill = fs.readFileSync(path.join(dsh2, 'skills', 'review', 'SKILL.md'), 'utf8');
+  assert.match(promptSkill, /Converted from a Codex custom prompt/, 'origin wording carried');
+  const patchC = fs.readFileSync(path.join(dsh2, 'cordis.patch.yml'), 'utf8');
+  assert.match(patchC, /serverName: 'gh'/);
+  assert.ok(!patchC.includes('dsh-hooks-claude-code'), 'no hooks row for codex');
+  assert.ok(!patchC.includes('dsh-movein-permissions'), 'no perms row for codex');
+
+  // empty codex machine
+  const home3 = path.join(tmp, 'home-empty');
+  fs.mkdirSync(home3, { recursive: true });
+  const dryE = execFileSync(process.execPath, [cli, proj2, '--from', 'codex'],
+    { env: { ...process.env, HOME: home3, DSH_HOME: '' }, encoding: 'utf8' });
+  assert.match(dryE, /Is Codex set up on this machine \(~\/.codex\)\?/);
 }
 
 fs.rmSync(tmp, { recursive: true, force: true });

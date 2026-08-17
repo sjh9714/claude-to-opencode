@@ -45,6 +45,15 @@ npx dsh-movein doctor     # 搬完随时体检
 
 会话历史不在范围内，请配合 [dsh-chat-import](https://github.com/Nwflower/dsh-chat-import) 使用。
 
+## 从 Codex 搬入
+
+```sh
+npx dsh-movein --from codex            # 预演
+npx dsh-movein --from codex --apply    # 搬入
+```
+
+改扫 `~/.codex`：`AGENTS.md` 链接为 `~/.dsh/AGENTS.md`，自定义 prompts 转换为用户可调用技能，`config.toml` 里的 `mcp_servers` 转成 `dsh-mcp-client` 配置行。会话请配合 dsh-chat-import，approval_policy 与沙箱设置留给 DSH 预设。下一步是 opencode 和 pi，来 [#3](https://github.com/sjh9714/dsh-movein/issues/3) 说说你的配置长什么样。
+
 ## 反向搬家（双栖）
 
 在 DSH 里长出来的技能可以搬回去。
@@ -62,7 +71,7 @@ DSH 原生技能落到 `.claude/skills`（符号链接，两边保持最新）�
 npx dsh-movein doctor
 ```
 
-搬家体检，随时可跑。检查每个搬过去的资产是否健在、有没有技能会被 DSH 的 YAML 解析器静默丢弃（[#1401](https://github.com/deepseek-ai/deepseek-harness/discussions/1401)，详见 [docs/skill-vanish.md](./docs/skill-vanish.md)）、`cordis.patch.yml` 引用的包是否可解析（解析不到 dsh 会直接无法启动）、hook matcher 大小写会不会匹配不上（[#582](https://github.com/deepseek-ai/deepseek-harness/issues/582)）。
+搬家体检，随时可跑。检查每个搬过去的资产是否健在、有没有技能会被 DSH 的 YAML 解析器静默丢弃（[#1401](https://github.com/deepseek-ai/deepseek-harness/discussions/1401)，详见 [docs/skill-vanish.md](./docs/skill-vanish.md)）、`cordis.patch.yml` 引用的包是否可解析（解析不到 dsh 会直接无法启动），以及有没有「静默死亡」的 hook：matcher 大小写匹配不上（[#582](https://github.com/deepseek-ai/deepseek-harness/issues/582)）、事件不在桥接的 7 个之内、或 type 不是 command 被桥直接跳过。
 
 搬坏了就 `npx dsh-movein restore`，每次写入前都自动备份到 `~/.dsh/movein-backups/`。
 
