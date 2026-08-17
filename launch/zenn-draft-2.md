@@ -42,12 +42,15 @@
 
 ## ツール
 
-上記は全部 dsh-movein が自動化します（v0.4 から --reverse で DSH 生まれのスキルを Claude Code へ逆輸出、デュアルブート運用可）：
+上記は全部 dsh-movein が自動化します（v0.4 から --reverse で DSH 生まれのスキルを Claude Code へ逆輸出、デュアルブート運用可。v0.5 で引っ越し後の検証コマンド doctor と cordis.patch.yml の自動バックアップ + restore が追加）：
 
 ```sh
 npx dsh-movein            # ドライラン
 npx dsh-movein --apply    # DSH へ引っ越し
 npx dsh-movein --reverse  # 逆方向
+npx dsh-movein doctor     # 引っ越し後の健康診断
 ```
+
+ちなみに doctor が検出する罠の代表例：description に引用符なしの「: 」があるスキルは、DSH の YAML パーサーが例外を投げてカタログから何のログもなく消えます（Claude Code の寛容なパーサーでは平気だったもの）。仕組みの詳細は [docs/skill-vanish.md](https://github.com/sjh9714/dsh-movein/blob/main/docs/skill-vanish.md) に。
 
 リポジトリ https://github.com/sjh9714/dsh-movein （対照表と token スクリプトは docs/ に、再現可能）
