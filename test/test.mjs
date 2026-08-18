@@ -180,6 +180,11 @@ assert.match(patch2, /keep-me/, 'user rows preserved');
 
 // 7. doctor: flags the silently-dropped skill, exits 1, packages checked
 {
+  // a hand-placed skill in the rank-500 ~/.agents root, same silent-drop shape
+  const agentsSkill = path.join(home, '.agents', 'skills', 'agents-side-skill');
+  fs.mkdirSync(agentsSkill, { recursive: true });
+  fs.writeFileSync(path.join(agentsSkill, 'SKILL.md'),
+    "---\nname: agents-side-skill\ndescription: Note: this one lives outside .dsh\n---\nbody");
   let doc = '', code = 0;
   try {
     doc = execFileSync(process.execPath, [cli, 'doctor', project],
@@ -187,6 +192,7 @@ assert.match(patch2, /keep-me/, 'user rows preserved');
   } catch (e) { doc = e.stdout; code = e.status; }
   assert.strictEqual(code, 1, 'doctor exits 1 when a check fails');
   assert.match(doc, /✗ skill risky-skill, unquoted ": "/, 'moved silent-drop skill flagged');
+  assert.match(doc, /agents-side-skill/, 'skill in the ~/.agents root is checked too');
   assert.match(doc, /✓ package @deepseek-ai\/dsh-mcp-client, resolvable/);
   assert.match(doc, /✓ package dsh-movein-permissions, resolvable/);
   assert.match(doc, /✓ moved assets/, 'manifest destinations verified');

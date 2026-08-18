@@ -8,7 +8,7 @@ Everything a Claude Code setup contains, and what actually happens to each piece
 |---|---|---|
 | Project `CLAUDE.md` | **Native, zero work** | `instructionFileCandidates` defaults to `['AGENTS.md', 'CLAUDE.md']`, local variants too. DSH discovers it from project root down to cwd and renders it the same system-reminder way Claude Code does |
 | Global `~/.claude/CLAUDE.md` | **One symlink** | The global slot is `$DSH_HOME/AGENTS.md` only, no CLAUDE.md fallback there. Link it and you are done |
-| Skills (`SKILL.md`) | **Format compatible as is** | Frontmatter parses as an open object, only `name` and `description` are required, unknown keys (`allowed-tools`, `license`, ...) are ignored. But `.claude/skills` is NOT a default root, skills must land in `~/.dsh/skills` or `<project>/.dsh/skills` |
+| Skills (`SKILL.md`) | **Format compatible as is** | Frontmatter parses as an open object, only `name` and `description` are required, unknown keys (`allowed-tools`, `license`, ...) are ignored. But `.claude/skills` is NOT one of the roots, so skills have to land in one (see the table below) |
 | Slash-invoking skills | **Same UX** | Users type `/name`, the model loads via a skill tool, same shape both sides |
 | MCP servers (`.mcp.json`) | **Lossless mechanical conversion** | One `dsh-mcp-client` config row per server (stdio and streamable-http). Tool names are literally identical, `mcp__server__tool` on both sides, so nothing referencing them breaks |
 | Hooks (`settings.json` `hooks`) | **First party bridge, partial events** | `@deepseek-ai/dsh-hooks-claude-code` runs your existing hooks config unchanged, same stdin payload, exit code and matcher semantics, `${CLAUDE_PROJECT_DIR}` substituted. 7 of 30 events mapped (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, SubagentStart, SubagentStop), the rest silently skipped. Command hooks only. Known upstream bug, matchers are case sensitive against DSH tool names, a `Bash` matcher does not select the lowercase `bash` tool so security hooks can fail silently (deepseek-harness discussion #582), write matchers lowercase until fixed |
@@ -17,6 +17,23 @@ Everything a Claude Code setup contains, and what actually happens to each piece
 | Slash commands (`.claude/commands/*.md`) | **No file equivalent** | DSH commands are code-registered. User-invocable skills are the file-based substitute |
 | Sessions | **Hardest, avoid writing** | `~/.dsh/sessions` uses zstd-framed JSONL at `SESSION_FORMAT_VERSION = 0` with an explicit no-compatibility promise and strict event invariants. Import history as plugin-sourced recall messages, never by writing session files. For conversation history use [dsh-chat-import](https://github.com/Nwflower/dsh-chat-import) |
 | Memory / `~/.claude` misc | **Manual** | No DSH counterpart, carry what matters into `AGENTS.md` or skills |
+
+## Where DSH actually looks for skills
+
+`.claude/skills` is not scanned, but there are six roots, not two. Read in rank order from `packages/skill/skill-filesystem/src/index.ts`, the first match wins on a name collision.
+
+| Rank | Source | Root |
+|---|---|---|
+| 100 | `project-dsh` | `<projectRoot>/.dsh/skills` |
+| 200 | `project-agents` | `<projectRoot>/.agents/skills` |
+| 300 | `custom` | whatever `customSkillDirs` lists |
+| 400 | `user-dsh` | `$DSH_HOME/skills`, default `~/.dsh/skills` |
+| 500 | `user-agents` | `$DSH_AGENTS_HOME/skills`, default `~/.agents/skills` |
+| 600 | `bundled` | `bundledSkillDir` when a deployment configures one |
+
+Three details that bite. The project root is the nearest ancestor containing `.git`, falling back to the cwd, so running from a subdirectory of a monorepo can silently pick a different root than you expect. The user DSH root skips its `.system` child. Nested discovery is not supported, a `SKILL.md` must sit one level under a root, not at `**/SKILL.md`.
+
+`dsh-movein` writes into rank 100 and rank 400 (the `.dsh` pair) because those are DSH's own namespace, and `doctor` checks every root above for the silent-drop frontmatter shape, including the `.agents` ones you may have filled by hand.
 
 > rc.7 note (2026-08-17, day of release). The full flow was re-verified against `0.1.0-rc.7` within hours of it landing on npm, plugin boot, `--apply`, composed `dsh-mcp-client` rows and `doctor` all pass unchanged. The table below was measured on rc.6 source and still holds.
 
