@@ -4,16 +4,17 @@
 // Registered as a raw JSON-Schema ToolDefinition (no host package imports,
 // so the plugin resolves under link: installs and registry installs alike).
 import { scan } from '../lib/scan.mjs'
+import { scanOpenCode } from '../lib/opencode.mjs'
 import { planActions, applyActions } from '../lib/apply.mjs'
 import { renderReport } from '../lib/report.mjs'
 
 export const name = 'dsh-movein'
 export const inject = ['tools']
 
-export function apply(ctx) {
-  ctx.tools.register({
-    name: 'movein_from_claude_code',
-    description: 'Scan the local Claude Code setup (CLAUDE.md, skills, .mcp.json MCP servers, hooks, subagents, permission rules) and move it into DSH. Dry run by default and returns a moving-estimate report; call again with apply=true to perform the move. Changes to the plugin patch need a dsh restart to take effect.',
+function definition(name, description, scanner) {
+  return {
+    name,
+    description,
     parameters: {
       type: 'object',
       properties: {
@@ -30,10 +31,23 @@ export function apply(ctx) {
     async execute(rawArgs) {
       const args = rawArgs && typeof rawArgs === 'object' ? rawArgs : {}
       const project = typeof args.project === 'string' && args.project ? args.project : process.cwd()
-      const scanResult = scan({ project })
+      const scanResult = scanner({ project })
       const actions = planActions(scanResult, { copy: args.copy === true })
       if (args.apply === true) applyActions(actions, { scanResult })
       return renderReport(scanResult, actions, { apply: args.apply === true })
     },
-  })
+  }
+}
+
+export function apply(ctx) {
+  ctx.tools.register(definition(
+    'movein_from_claude_code',
+    'Scan the local Claude Code setup and move its instructions, skills, commands, MCP servers, hooks, subagents, and permission rules into DSH. Dry run by default.',
+    scan,
+  ))
+  ctx.tools.register(definition(
+    'movein_from_opencode',
+    'Scan the local OpenCode setup and move its instructions, skills, commands, agents, and MCP servers into DSH. Dry run by default.',
+    scanOpenCode,
+  ))
 }
