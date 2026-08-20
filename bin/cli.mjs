@@ -11,7 +11,7 @@ import { scanOpenCode } from '../lib/opencode.mjs';
 
 const args = process.argv.slice(2);
 if (args.includes('--help') || args.includes('-h')) {
-  console.log(`dsh-movein - move your Claude Code setup into DeepSeek Harness (DSH)
+  console.log(`dsh-movein - move agent setups into DeepSeek Harness (DSH)
 
 Usage: npx dsh-movein [projectDir] [options]
 
@@ -28,8 +28,8 @@ Options:
   --emit-rules  print your deny/ask rules in dsh-permission-rules YAML and exit
   -h, --help    this help
 
-Moves: global CLAUDE.md, skills, slash commands, MCP servers (.mcp.json), hooks,
-subagents, permission rules. Project CLAUDE.md needs no move, DSH reads it natively.`);
+Moves instructions, skills, commands, agents, MCP servers, and supported origin-specific settings.
+Project instruction files already read by DSH need no move.`);
   process.exit(0);
 }
 

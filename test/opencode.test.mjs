@@ -142,6 +142,7 @@ const nested = path.join(repo, 'packages', 'app');
 const layeredCustom = path.join(tmp, 'layered-custom.jsonc');
 const layeredDir = path.join(tmp, 'layered-dir');
 write(path.join(repo, '.git', 'HEAD'), 'ref: refs/heads/main\n');
+write(path.join(repo, 'AGENTS.md'), '# ancestor project rules');
 write(path.join(repo, 'opencode.json'), '{ "agent": { "layered": { "prompt": "root" } } }');
 write(path.join(repo, '.opencode', 'opencode.jsonc'), '{ "agent": { "layered": { "prompt": "root dotdir" } } }');
 write(path.join(nested, 'opencode.jsonc'), '{ "agent": { "layered": { "prompt": "nested" } } }');
@@ -156,6 +157,7 @@ const layered = scanOpenCode({
 assert.strictEqual(layered.inlineAgents.find((x) => x.name === 'layered').cfg.prompt, 'nested dotdir');
 assert.ok(layered.configs.some((x) => x.file === path.join(repo, 'opencode.json')));
 assert.ok(layered.configs.some((x) => x.file === path.join(nested, '.opencode', 'opencode.json')));
+assert.strictEqual(layered.projectClaudeMd, path.join(repo, 'AGENTS.md'));
 
 const rulesHome = path.join(tmp, 'rules-home');
 const rulesRoot = path.join(rulesHome, '.config', 'opencode');

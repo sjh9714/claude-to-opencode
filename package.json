@@ -1,7 +1,7 @@
 {
   "name": "dsh-movein",
-  "version": "0.6.0",
-  "description": "Migrate your whole Claude Code or Codex setup into DeepSeek Harness (DSH) with one command - import skills, slash commands, MCP servers, hooks, subagents, permission rules. 一键迁移导入，从 Claude Code 拎包入住 DSH。",
+  "version": "0.7.0",
+  "description": "Move Claude Code, Codex, or OpenCode setups into DeepSeek Harness with one command.",
   "license": "MIT",
   "type": "module",
   "main": "shell/index.mjs",
@@ -34,6 +34,8 @@
     "deepseek-harness",
     "dsh-plugin",
     "claude-code",
+    "codex",
+    "opencode",
     "migration",
     "mcp",
     "skills"

@@ -47,6 +47,10 @@ write(path.join(project, 'opencode.jsonc'), `{
       "url": "https://mcp.example.com",
       "headers": { "Authorization": "Bearer {env:MCP_TOKEN}" },
     },
+    "env-command": {
+      "type": "local",
+      "command": ["{env:MCP_BIN}", "--token={env:ARG_TOKEN}"],
+    },
     "disabled": { "type": "local", "command": ["npx", "off"], "enabled": false },
   },
 }`);
@@ -61,6 +65,7 @@ write(path.join(mcpPkg, 'package.json'), JSON.stringify({ name: '@deepseek-ai/ds
 
 const help = run(['--help']);
 assert.strictEqual(help.status, 0);
+assert.match(help.stdout, /move agent setups into DeepSeek Harness/);
 assert.match(help.stdout, /--from <origin>.*claude, codex, opencode/);
 
 const unknown = run([project, '--from', 'other']);
@@ -109,6 +114,8 @@ assert.match(patch, /FILE: '\{file:secret\.txt\}'/);
 assert.match(patch, /transport: streamable-http/);
 assert.match(patch, /url: 'https:\/\/mcp\.example\.com'/);
 assert.match(patch, /process\.env\.MCP_TOKEN/);
+assert.match(patch, /command: !!js process\.env\.MCP_BIN/);
+assert.match(patch, /args: \[!!js `--token=\$\{process\.env\.ARG_TOKEN\}`\]/);
 assert.ok(!patch.includes('serverName: \'disabled\''));
 
 const badHome = path.join(tmp, 'bad-home');
@@ -124,6 +131,15 @@ assert.match(bad.stdout, /opencode\.jsonc/);
 assert.match(bad.stdout, /dry run|nothing written|blocked/i);
 assert.ok(!fs.existsSync(path.join(badHome, '.dsh')), 'parse error apply writes nothing globally');
 assert.ok(!fs.existsSync(path.join(badProject, '.dsh')), 'parse error apply writes nothing in project');
+
+const emptyHome = path.join(tmp, 'empty-home');
+const empty = spawnSync(process.execPath, [cli, path.join(tmp, 'empty-project'), '--from', 'opencode'], {
+  env: { ...process.env, HOME: emptyHome, DSH_HOME: '' },
+  encoding: 'utf8',
+});
+assert.strictEqual(empty.status, 0);
+assert.match(empty.stdout, /~\/.config\/opencode/);
+assert.doesNotMatch(empty.stdout, /~\/.claude/);
 
 fs.rmSync(tmp, { recursive: true, force: true });
 console.log('ok - OpenCode migration flow assertions passed');

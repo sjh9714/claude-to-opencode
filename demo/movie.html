@@ -33,22 +33,22 @@
   <div class="win" id="term">
     <div class="tbar">
       <div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div>
-      <div class="ti">zsh — moving day</div>
+      <div class="ti">zsh  moving day</div>
     </div>
     <div id="tbody"><span class="dim">$ </span><span id="cmd1"></span><span id="caret1" style="display:inline-block;width:11px;height:24px;background:#d7dce6;vertical-align:-3px"></span>
-<span class="ln" id="l0"><span class="hdr">📦 dsh-movein · Claude Code -> DSH · 拎包入住</span>
-</span><span class="ln" id="l1">  <span class="arw">→</span> CLAUDE.md (global)  link -> ~/.dsh/AGENTS.md
-</span><span class="ln" id="l2">  <span class="arw">→</span> skill computer-use  link -> ~/.dsh/skills/
-</span><span class="ln" id="l3">  <span class="arw">→</span> skill design-taste-frontend  link -> ~/.dsh/skills/
-</span><span class="ln" id="l4">  <span class="arw">→</span> skill handoff  link -> ~/.dsh/skills/
-</span><span class="ln" id="l5">  <span class="arw">→</span> MCP + hooks  block -> ~/.dsh/cordis.patch.yml
+<span class="ln" id="l0"><span class="hdr">📦 Claude Code + Codex + OpenCode -> DSH</span>
+</span><span class="ln" id="l1">  <span class="grn">✓</span> AGENTS.md (project)  DSH reads it natively
+</span><span class="ln" id="l2">  <span class="arw">→</span> skill terminal-design  link -> ~/.dsh/skills/
+</span><span class="ln" id="l3">  <span class="arw">→</span> agent reviewer  convert -> .dsh/skills/reviewer
+</span><span class="ln" id="l4">  <span class="arw">→</span> command /release  convert -> .dsh/skills/release
+</span><span class="ln" id="l5">  <span class="arw">→</span> 2 MCP servers  block -> ~/.dsh/cordis.patch.yml
 </span><span class="ln" id="l6">
-  <span class="dim">found: 4 skills · 3 MCP · 1 hooks · 878 sessions</span>
+  <span class="dim">found  3 skills · 1 command · 2 MCP · 1 agent</span>
 </span><span class="ln" id="l7">  <span class="dim">dry run, nothing written. --apply to move in.</span>
 
 </span><span class="ln" id="l8"><span class="dim">$ </span><span id="cmd2"></span>
-</span><span class="ln" id="l9">  <span class="grn">✓ CLAUDE.md   ✓ 4 skills   ✓ MCP servers   ✓ hooks</span>
-</span><span class="ln" id="l10">  <span class="grn">moved in.</span> <span class="dim">Verify with: dsh --profile web --dump-config</span>
+</span><span class="ln" id="l9">  <span class="grn">✓ AGENTS.md   ✓ 3 skills   ✓ 2 MCP servers</span>
+</span><span class="ln" id="l10">  <span class="grn">moved in.</span> <span class="dim">Verify with  dsh --profile web --dump-config</span>
 </span></div>
   </div>
 
@@ -58,18 +58,18 @@
       <div class="sysline">new session · ~/code/my-app</div>
     </div>
     <div id="menu">
-      <div class="mhead">SKILLS · just moved in from Claude Code</div>
-      <div class="mi" id="m0">/computer-use <span class="badge">imported</span><span class="desc">drive desktop apps</span></div>
-      <div class="mi" id="m1">/design-taste-frontend <span class="badge">imported</span><span class="desc">senior UI/UX rules</span></div>
-      <div class="mi" id="m2">/handoff <span class="badge">imported</span><span class="desc">session handoff notes</span></div>
-      <div class="mi" id="m3">/orca-cli <span class="badge">imported</span><span class="desc">orca worktrees & terminals</span></div>
+      <div class="mhead">SKILLS · just moved in from OpenCode</div>
+      <div class="mi" id="m0">/terminal-design <span class="badge">imported</span><span class="desc">terminal UI rules</span></div>
+      <div class="mi" id="m1">/reviewer <span class="badge">imported</span><span class="desc">OpenCode agent</span></div>
+      <div class="mi" id="m2">/release <span class="badge">imported</span><span class="desc">OpenCode command</span></div>
+      <div class="mi" id="m3">mcp__github__search <span class="badge">ready</span><span class="desc">same MCP tools</span></div>
     </div>
     <div id="composer"><span id="typed2"></span><span id="caret2"></span></div>
   </div>
 
 </div></div>
 <script>
-const CMD1='npx dsh-movein', CMD2='npx dsh-movein --apply';
+const CMD1='npx dsh-movein --from opencode', CMD2='npx dsh-movein --from opencode --apply';
 const T={
   type1:[300,1100], enter1:[1100,1250],
   scan:[1250,3300],        // header + 6 report lines staggered

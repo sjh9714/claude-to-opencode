@@ -6,94 +6,119 @@
   <a href="https://www.npmjs.com/package/dsh-movein"><img alt="npm" src="https://img.shields.io/npm/v/dsh-movein?style=flat-square&color=4b6fff"></a>
   <a href="https://github.com/sjh9714/dsh-movein/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/sjh9714/dsh-movein/actions/workflows/ci.yml/badge.svg"></a>
   <a href="LICENSE"><img alt="MIT" src="https://img.shields.io/badge/license-MIT-2EA44F?style=flat-square"></a>
-  <img alt="zero dependencies" src="https://img.shields.io/badge/dependencies-0-brightgreen?style=flat-square">
-  <a href="https://www.npmjs.com/package/dsh-movein"><img alt="downloads" src="https://img.shields.io/npm/dm/dsh-movein?style=flat-square&color=8250df"></a>
 </p>
 
-一条命令，把整套 Claude Code 配置搬进 [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness)。技能、MCP、hooks、全局指令一起到位，从 Claude Code 拎包入住。
+一条命令，把 Claude Code、Codex 或 OpenCode 配置搬进 [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness)。
 
-![dsh-movein demo](https://raw.githubusercontent.com/sjh9714/dsh-movein/main/docs/demo.gif)
+先预演，再搬入。已有目标不会被覆盖。
+
+![Claude Code、Codex 和 OpenCode 搬入 DSH](https://raw.githubusercontent.com/sjh9714/dsh-movein/main/docs/demo.gif)
+
+## 选择来源
+
+```sh
+# Claude Code
+npx dsh-movein
+npx dsh-movein --apply
+
+# Codex
+npx dsh-movein --from codex
+npx dsh-movein --from codex --apply
+
+# OpenCode
+npx dsh-movein --from opencode
+npx dsh-movein --from opencode --apply
+```
+
+没有 `--apply` 时只预演。需要复制技能而不是符号链接时加 `--copy`。
+
+## 在 DSH 内使用
 
 ```sh
 dsh plugin --profile web add dsh-movein
 ```
 
-重启 `dsh web` 后说「帮我把 Claude Code 的配置搬过来」即可，插件注册了 `movein_from_claude_code` 工具，默认预演。
+重启 `dsh web`。插件会注册两个工具。
 
-也可以独立运行，不装插件。
+- `movein_from_claude_code`
+- `movein_from_opencode`
 
-```sh
-npx dsh-movein            # 预演，先看搬家清单
-npx dsh-movein --apply    # 正式入住
-npx dsh-movein doctor     # 搬完随时体检
-```
+两个工具默认都只预演，确认后传入 `apply=true`。
 
-**实测兼容性对照表见 [docs/compat.md](./docs/compat.md)**，每类资产在 DSH 里到底会怎样，按 rc.6 源码逐项验证，含无法自动化的部分。
+## 兼容范围
 
-## 能搬什么
-
-| 资产 | 怎么搬 |
+| 来源 | 搬入内容 |
 | --- | --- |
-| 项目 CLAUDE.md | 不用搬。DSH 原生就读 |
-| 全局 `~/.claude/CLAUDE.md` | 链接为 `~/.dsh/AGENTS.md` |
-| 技能 | 符号链接进 DSH 技能根，`SKILL.md` 格式原样兼容，原文件改动两边同步 |
-| `.mcp.json` | 机械转换为 `dsh-mcp-client` 配置行，工具名 `mcp__server__tool` 两边完全一致 |
-| hooks | 官方 `dsh-hooks-claude-code` 桥直接跑你现有的配置 |
-| 子代理（`.claude/agents`） | 自动转换为 DSH 技能 |
-| 斜杠命令（`.claude/commands`） | 转换为用户可调用的 DSH 技能，`/name` 照常用 |
-| 权限规则 | `deny` 与 `ask` 通过配套插件 [dsh-movein-permissions](./plugin/) 在 `tools/pre-execute` 强制执行，无法映射的规则逐条列进迁移差异报告，绝不静默丢弃。想用 dsh-permission-rules 引擎的话，`--emit-rules` 可导出其 YAML 格式 |
+| Claude Code | 全局与项目指令、技能、斜杠命令、MCP、已支持 hooks、子代理和可映射权限规则 |
+| Codex | 全局 `AGENTS.md`、自定义 prompts 和 `config.toml` 中的 stdio MCP |
+| OpenCode | JSON 或 JSONC 中的指令、技能、命令、agents、本地与远程 MCP |
 
-会话历史不在范围内，请配合 [dsh-chat-import](https://github.com/Nwflower/dsh-chat-import) 使用。
+[完整兼容性表](docs/compat.md) 会逐项说明来源路径、DSH 目标、保留行为和不支持内容。
 
-## 从 Codex 搬入
+## OpenCode 支持
 
-```sh
-npx dsh-movein --from codex            # 预演
-npx dsh-movein --from codex --apply    # 搬入
-```
+`--from opencode` 按 OpenCode 的优先级读取全局设置、`OPENCODE_CONFIG`、项目设置、`.opencode` 目录和 `OPENCODE_CONFIG_DIR`。同名定义以更靠近项目的版本为准。
 
-改扫 `~/.codex`：`AGENTS.md` 链接为 `~/.dsh/AGENTS.md`，自定义 prompts 转换为用户可调用技能，`config.toml` 里的 `mcp_servers` 转成 `dsh-mcp-client` 配置行。会话请配合 dsh-chat-import，approval_policy 与沙箱设置留给 DSH 预设。下一步是 opencode 和 pi，来 [#3](https://github.com/sjh9714/dsh-movein/issues/3) 说说你的配置长什么样。
+支持 `opencode.json` 和 `opencode.jsonc`，包括注释和尾逗号。
 
-## 反向搬家（双栖）
+- `skill` 和 `skills` 目录搬成 DSH skills
+- `agent` 和 `agents` 文件转换为 DSH skills
+- `command` 和 `commands` 文件转换为用户可调用的 DSH skills
+- 内联 agents 和 commands 与文件资产采用同一转换
+- 本地 MCP command 数组拆成 DSH stdio command 和 args
+- 远程 MCP 转成 streamable HTTP 配置
+- 已禁用 MCP 不搬入，但会显示在报告中
+- `{env:VAR}` 保留为运行时 `process.env.VAR` 引用
+- `{file:path}` 保留供人工检查，dsh-movein 不会读取文件内容
 
-在 DSH 里长出来的技能可以搬回去。
+项目 `AGENTS.md` 不用搬，DSH 原生读取。只有一个全局 instruction 文件且 `~/.dsh/AGENTS.md` 不存在时才会建立链接。多个文件、glob、URL、OpenCode permissions 和 plugins 都只报告，不猜测转换。
 
-```sh
-npx dsh-movein --reverse            # 看看有什么能搬回去
-npx dsh-movein --reverse --apply    # 搬回 Claude Code
-```
+任何 JSONC 无法解析时，`--apply` 会在首次写入前停止。
 
-DSH 原生技能落到 `.claude/skills`（符号链接，两边保持最新）。当年从 Claude Code 搬来的资产会被识别并跳过，它们从来没离开过。两个工具都用，配置只维护一套。
+## 安全边界
 
-## 搬完之后
+- 默认只预演
+- 已有目标跳过
+- 每次写入前备份 `cordis.patch.yml`
+- `npx dsh-movein restore` 恢复最新备份
+- `~/.dsh/movein-manifest.json` 记录来源和目标
+- 环境变量占位符保留为运行时引用
+- 预演会报告疑似明文密钥
+- sessions 不在范围内
+
+## 搬完检查
 
 ```sh
 npx dsh-movein doctor
+dsh --profile web --dump-config | grep -E "mcp-|cc-hooks"
 ```
 
-搬家体检，随时可跑。检查每个搬过去的资产是否健在、有没有技能会被 DSH 的 YAML 解析器静默丢弃（[#1401](https://github.com/deepseek-ai/deepseek-harness/discussions/1401)，详见 [docs/skill-vanish.md](./docs/skill-vanish.md)）、`cordis.patch.yml` 引用的包是否可解析（解析不到 dsh 会直接无法启动），以及有没有「静默死亡」的 hook：matcher 大小写匹配不上（[#582](https://github.com/deepseek-ai/deepseek-harness/issues/582)）、事件不在桥接的 7 个之内、或 type 不是 command 被桥直接跳过。
+技能目录按 session 固定，所以搬完后请新建 DSH session。
 
-搬坏了就 `npx dsh-movein restore`，每次写入前都自动备份到 `~/.dsh/movein-backups/`。
+## Claude Code 双栖
 
-## 设计原则
+DSH 原生技能可以搬回 Claude Code。从 Claude Code 搬来的资产会识别并跳过。
 
-- 默认 dry run，不加 `--apply` 不写任何文件
-- 每次写入 `cordis.patch.yml` 前自动备份，`restore` 一键回滚
-- 零依赖，纯 Node，代码量小到可以先读完再跑
-- 重复执行安全，生成块原地替换，自己写的配置行不受影响
-- 权限迁移出差异报告（几条生效、几条映射不了都列出来），fail closed 优先于静默转换
-- 预演阶段扫描 hook 命令里的未知环境变量，搬完才炸不如搬前就警告
-- 密钥永不写入生成的 YAML，`${VAR}` 转成 `process.env` 引用，疑似明文密钥预演即告警
-- 每次搬家记录 manifest（`~/.dsh/movein-manifest.json`），「这个技能从哪来」永远可查
-- 所需包按宿主 dsh 版本锁定安装，解析不到的包绝不写进配置（那会让 dsh 启动直接失败）
+```sh
+npx dsh-movein --reverse
+npx dsh-movein --reverse --apply
+```
 
-## 每请求 token 账单
+反向搬家目前只支持 Claude Code。
 
-搬进来的技能不是免费的，技能目录以 system-reminder 注入每个请求，固定 143 token，每个技能约 28 token。搬家前先精简，实测数据与复现脚本见 [docs/token-bill.md](./docs/token-bill.md)。
+## 不搬内容
 
-## 相关
+- sessions
+- OpenCode permissions 和 plugins
+- Codex approval 与 sandbox policy
+- 多个 instruction 文件、glob 和远程 URL
+- 反向搬家时手写的 DSH MCP 与 hook 配置
 
-搬完家看看钱花在哪：[dsh-lean](https://github.com/sjh9714/dsh-lean) 逐请求审计会话的缓存命中拆分，并把 DSH 提示词前缀压掉 53%。`npx dsh-lean audit`，什么都不装。
+会话历史请使用 [dsh-chat-import](https://github.com/Nwflower/dsh-chat-import)。
+
+## 项目状态
+
+已在 DSH `0.1.0-rc.6` 和 `0.1.0-rc.7` 完成端到端验证。CI 使用 `npm ci` 在 Linux、macOS 和 Windows 上运行同一套测试。
 
 ## 许可
 
