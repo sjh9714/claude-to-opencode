@@ -19,6 +19,7 @@ jobs:
   # release that breaks the plugin contract fails CI instead of users.
   dsh-boot-smoke:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -30,11 +31,11 @@ jobs:
         run: |
           export DSH_HOME="$RUNNER_TEMP/dsh-home"
           npm pack --silent
-          npx @deepseek-ai/dsh plugin --profile web add "$PWD"/dsh-movein-*.tgz
+          npx --yes @deepseek-ai/dsh plugin --profile web add "$PWD"/dsh-movein-*.tgz
           echo "DSH_HOME=$DSH_HOME" >> "$GITHUB_ENV"
       - name: composed config contains the plugin and dsh boots the tree
         run: |
-          npx @deepseek-ai/dsh --profile web --dump-config > composed.txt
+          npx --yes @deepseek-ai/dsh --profile web --dump-config > composed.txt
           grep -q "dsh-movein" composed.txt
       - name: cli scan runs against a synthetic Claude home
         run: |
