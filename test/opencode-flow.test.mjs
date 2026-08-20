@@ -129,6 +129,8 @@ const bad = spawnSync(process.execPath, [cli, badProject, '--from', 'opencode', 
 assert.strictEqual(bad.status, 1);
 assert.match(bad.stdout, /opencode\.jsonc/);
 assert.match(bad.stdout, /dry run|nothing written|blocked/i);
+assert.doesNotMatch(bad.stdout, /✓ skill must-not-move/);
+assert.match(bad.stdout, /→ skill must-not-move/);
 assert.ok(!fs.existsSync(path.join(badHome, '.dsh')), 'parse error apply writes nothing globally');
 assert.ok(!fs.existsSync(path.join(badProject, '.dsh')), 'parse error apply writes nothing in project');
 
