@@ -18,7 +18,7 @@ const write = (file, text) => {
   fs.writeFileSync(file, text);
 };
 const run = (args, extraEnv = {}) => spawnSync(process.execPath, [cli, ...args], {
-  env: { ...process.env, HOME: home, DSH_HOME: '', ...extraEnv },
+  env: { ...process.env, HOME: home, XDG_CONFIG_HOME: path.join(home, '.config'), DSH_HOME: '', ...extraEnv },
   encoding: 'utf8',
 });
 
@@ -123,7 +123,7 @@ const badProject = path.join(tmp, 'bad-project');
 write(path.join(badHome, '.config', 'opencode', 'opencode.jsonc'), '{ "mcp": {, } }');
 write(path.join(badProject, '.opencode', 'skills', 'must-not-move', 'SKILL.md'), '---\nname: must-not-move\ndescription: d\n---\nbody\n');
 const bad = spawnSync(process.execPath, [cli, badProject, '--from', 'opencode', '--apply'], {
-  env: { ...process.env, HOME: badHome, DSH_HOME: '' },
+  env: { ...process.env, HOME: badHome, XDG_CONFIG_HOME: path.join(badHome, '.config'), DSH_HOME: '' },
   encoding: 'utf8',
 });
 assert.strictEqual(bad.status, 1);
@@ -136,7 +136,7 @@ assert.ok(!fs.existsSync(path.join(badProject, '.dsh')), 'parse error apply writ
 
 const emptyHome = path.join(tmp, 'empty-home');
 const empty = spawnSync(process.execPath, [cli, path.join(tmp, 'empty-project'), '--from', 'opencode'], {
-  env: { ...process.env, HOME: emptyHome, DSH_HOME: '' },
+  env: { ...process.env, HOME: emptyHome, XDG_CONFIG_HOME: path.join(emptyHome, '.config'), DSH_HOME: '' },
   encoding: 'utf8',
 });
 assert.strictEqual(empty.status, 0);
