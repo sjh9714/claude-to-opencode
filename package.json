@@ -23,8 +23,11 @@
   "engines": {
     "node": ">=18"
   },
+  "dependencies": {
+    "jsonc-parser": "^3.3.1"
+  },
   "scripts": {
-    "test": "node test/test.mjs"
+    "test": "node test/test.mjs && node test/opencode.test.mjs"
   },
   "keywords": [
     "dsh",

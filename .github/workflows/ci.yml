@@ -11,7 +11,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: node test/test.mjs
+      - run: npm ci
+      - run: npm test
       - run: node plugin/test.mjs
 
   # Boot the real DSH host with this checkout installed as a plugin, so a DSH
@@ -23,6 +24,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - run: npm ci
       - run: npm install -g pnpm
       - name: install dsh and this plugin into a scratch profile
         run: |
