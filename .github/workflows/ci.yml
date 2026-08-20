@@ -39,13 +39,12 @@ jobs:
           grep -q "dsh-movein" composed.txt
       - name: OpenCode environment placeholders boot in DSH
         env:
-          HOME: ${{ runner.temp }}/opencode-home
-          XDG_CONFIG_HOME: ${{ runner.temp }}/opencode-home/.config
+          OPENCODE_CONFIG: ${{ runner.temp }}/opencode.json
           MCP_BIN: node
           MCP_TOKEN: probe
         run: |
-          mkdir -p "$XDG_CONFIG_HOME/opencode" "$RUNNER_TEMP/opencode-project"
-          node -e "require('node:fs').writeFileSync(process.env.XDG_CONFIG_HOME + '/opencode/opencode.json', JSON.stringify({ mcp: { probe: { type: 'local', command: ['{env:MCP_BIN}', '--token={env:MCP_TOKEN}'] } } }))"
+          mkdir -p "$RUNNER_TEMP/opencode-project"
+          node -e "require('node:fs').writeFileSync(process.env.OPENCODE_CONFIG, JSON.stringify({ mcp: { probe: { type: 'local', command: ['{env:MCP_BIN}', '--token={env:MCP_TOKEN}'] } } }))"
           pnpm dlx @deepseek-ai/dsh plugin --profile web add @deepseek-ai/dsh-mcp-client
           node bin/cli.mjs "$RUNNER_TEMP/opencode-project" --from opencode --apply
           pnpm dlx @deepseek-ai/dsh --profile web --dump-config | grep -q "process.env.MCP_TOKEN"
