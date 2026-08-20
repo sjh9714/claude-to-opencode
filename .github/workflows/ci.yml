@@ -11,28 +11,31 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: node test/test.mjs
+      - run: npm ci
+      - run: npm test
       - run: node plugin/test.mjs
 
   # Boot the real DSH host with this checkout installed as a plugin, so a DSH
   # release that breaks the plugin contract fails CI instead of users.
   dsh-boot-smoke:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - run: npm ci
       - run: npm install -g pnpm
       - name: install dsh and this plugin into a scratch profile
         run: |
           export DSH_HOME="$RUNNER_TEMP/dsh-home"
           npm pack --silent
-          npx @deepseek-ai/dsh plugin --profile web add "$PWD"/dsh-movein-*.tgz
+          pnpm dlx @deepseek-ai/dsh plugin --profile web add "$PWD"/dsh-movein-*.tgz
           echo "DSH_HOME=$DSH_HOME" >> "$GITHUB_ENV"
       - name: composed config contains the plugin and dsh boots the tree
         run: |
-          npx @deepseek-ai/dsh --profile web --dump-config > composed.txt
+          pnpm dlx @deepseek-ai/dsh --profile web --dump-config > composed.txt
           grep -q "dsh-movein" composed.txt
       - name: cli scan runs against a synthetic Claude home
         run: |

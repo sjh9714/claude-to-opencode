@@ -143,9 +143,12 @@ assert.match(patch2, /keep-me/, 'user rows preserved');
 // 5. plugin shell: raw tool registration + in-process dry run
 {
   const { apply: shellApply } = await import('../shell/index.mjs');
-  let def = null;
-  shellApply({ tools: { register: (d) => { def = d; } } });
-  assert.strictEqual(def.name, 'movein_from_claude_code');
+  const defs = new Map();
+  shellApply({ tools: { register: (d) => { defs.set(d.name, d); } } });
+  const def = defs.get('movein_from_claude_code');
+  const openCodeDef = defs.get('movein_from_opencode');
+  assert.ok(def);
+  assert.ok(openCodeDef);
   assert.strictEqual(def.parameters.type, 'object');
   assert.strictEqual(typeof def.execute, 'function');
   const oldHome = process.env.HOME, oldDsh = process.env.DSH_HOME;
@@ -156,6 +159,8 @@ assert.match(patch2, /keep-me/, 'user rows preserved');
   assert.match(report, /moving estimate/);
   const rendered = def.output.render({}, report);
   assert.strictEqual(rendered[0].type, 'text');
+  const openCodeReport = await openCodeDef.execute({ project });
+  assert.match(openCodeReport, /OpenCode -> DeepSeek Harness moving estimate/);
 }
 
 // 6. reverse: DSH-born skills come back, moved-in symlinks and existing files are skipped
