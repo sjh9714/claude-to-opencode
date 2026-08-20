@@ -7,6 +7,7 @@ import { renderReport } from '../lib/report.mjs';
 import { scanReverse, planReverseActions, renderReverseReport } from '../lib/reverse.mjs';
 import { runDoctor, renderDoctor } from '../lib/doctor.mjs';
 import { scanCodex } from '../lib/codex.mjs';
+import { scanOpenCode } from '../lib/opencode.mjs';
 
 const args = process.argv.slice(2);
 if (args.includes('--help') || args.includes('-h')) {
@@ -22,7 +23,7 @@ Commands:
 Options:
   --apply       actually move (default is a dry run)
   --copy        copy skills instead of symlinking
-  --from codex  move a Codex CLI setup instead (~/.codex: AGENTS.md, prompts, MCP servers)
+  --from <origin>  claude, codex, opencode
   --reverse     bring DSH-born skills and instructions back to Claude Code (dual boot)
   --emit-rules  print your deny/ask rules in dsh-permission-rules YAML and exit
   -h, --help    this help
@@ -40,8 +41,8 @@ const fromIdx = args.findIndex((a) => a === '--from' || a.startsWith('--from='))
 if (fromIdx !== -1) {
   from = args[fromIdx].includes('=') ? args[fromIdx].split('=')[1] : args[fromIdx + 1];
   if (args[fromIdx] === '--from') args.splice(fromIdx, 2); else args.splice(fromIdx, 1);
-  if (!['claude', 'codex'].includes(from)) {
-    console.error(`dsh-movein: unknown origin "${from}", supported: claude, codex`);
+  if (!['claude', 'codex', 'opencode'].includes(from)) {
+    console.error(`dsh-movein: unknown origin "${from}", supported: claude, codex, opencode`);
     process.exit(1);
   }
 }
@@ -78,7 +79,11 @@ if (reverse) {
   process.exit(actions.some((a) => a.status === 'error') ? 1 : 0);
 }
 
-const scanResult = from === 'codex' ? scanCodex({ project }) : scan({ project });
+const scanResult = from === 'codex'
+  ? scanCodex({ project })
+  : from === 'opencode'
+    ? scanOpenCode({ project })
+    : scan({ project });
 const actions = planActions(scanResult, { copy });
 if (apply) applyActions(actions, { scanResult });
 console.log(renderReport(scanResult, actions, { apply }));
