@@ -31,11 +31,11 @@ jobs:
         run: |
           export DSH_HOME="$RUNNER_TEMP/dsh-home"
           npm pack --silent
-          npx --yes @deepseek-ai/dsh plugin --profile web add "$PWD"/dsh-movein-*.tgz
+          pnpm dlx @deepseek-ai/dsh plugin --profile web add "$PWD"/dsh-movein-*.tgz
           echo "DSH_HOME=$DSH_HOME" >> "$GITHUB_ENV"
       - name: composed config contains the plugin and dsh boots the tree
         run: |
-          npx --yes @deepseek-ai/dsh --profile web --dump-config > composed.txt
+          pnpm dlx @deepseek-ai/dsh --profile web --dump-config > composed.txt
           grep -q "dsh-movein" composed.txt
       - name: cli scan runs against a synthetic Claude home
         run: |
