@@ -115,7 +115,7 @@ assert.match(patch, /transport: streamable-http/);
 assert.match(patch, /url: 'https:\/\/mcp\.example\.com'/);
 assert.match(patch, /process\.env\.MCP_TOKEN/);
 assert.match(patch, /command: !!js process\.env\.MCP_BIN/);
-assert.match(patch, /args: \[!!js `--token=\$\{process\.env\.ARG_TOKEN\}`\]/);
+assert.match(patch, /args: \[!!js '`--token=\$\{process\.env\.ARG_TOKEN\}`'\]/);
 assert.ok(!patch.includes('serverName: \'disabled\''));
 
 const badHome = path.join(tmp, 'bad-home');

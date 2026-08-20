@@ -37,6 +37,17 @@ jobs:
         run: |
           pnpm dlx @deepseek-ai/dsh --profile web --dump-config > composed.txt
           grep -q "dsh-movein" composed.txt
+      - name: OpenCode environment placeholders boot in DSH
+        env:
+          OPENCODE_CONFIG: ${{ runner.temp }}/opencode.json
+          MCP_BIN: node
+          MCP_TOKEN: probe
+        run: |
+          mkdir -p "$RUNNER_TEMP/opencode-project"
+          node -e "require('node:fs').writeFileSync(process.env.OPENCODE_CONFIG, JSON.stringify({ mcp: { probe: { type: 'local', command: ['{env:MCP_BIN}', '--token={env:MCP_TOKEN}'] } } }))"
+          pnpm dlx @deepseek-ai/dsh plugin --profile web add @deepseek-ai/dsh-mcp-client
+          node bin/cli.mjs "$RUNNER_TEMP/opencode-project" --from opencode --apply
+          pnpm dlx @deepseek-ai/dsh --profile web --dump-config | grep -q "process.env.MCP_TOKEN"
       - name: cli scan runs against a synthetic Claude home
         run: |
           export HOME="$RUNNER_TEMP/fake-home"
