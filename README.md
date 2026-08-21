@@ -80,6 +80,7 @@ If any JSONC file cannot be parsed, `--apply` is blocked before the first write.
 
 - Dry run is the default
 - Existing destinations are skipped
+- On Windows, a permission-denied symlink falls back to a copy and is named in the report
 - `cordis.patch.yml` is backed up before each write
 - `npx dsh-movein restore` restores the newest patch backup
 - `~/.dsh/movein-manifest.json` records moved sources and destinations
