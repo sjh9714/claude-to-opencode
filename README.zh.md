@@ -79,6 +79,7 @@ dsh plugin --profile web add dsh-movein
 
 - 默认只预演
 - 已有目标跳过
+- Windows 拒绝创建符号链接时会自动改为复制，并在报告中注明
 - 每次写入前备份 `cordis.patch.yml`
 - `npx dsh-movein restore` 恢复最新备份
 - `~/.dsh/movein-manifest.json` 记录来源和目标

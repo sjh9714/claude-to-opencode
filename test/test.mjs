@@ -80,6 +80,35 @@ assert.ok(!dry.includes('$HOME ('), 'common shell var not warned');
 assert.ok(!fs.existsSync(path.join(home, '.dsh', 'cordis.patch.yml')), 'dry run must not write patch');
 assert.ok(!fs.existsSync(path.join(home, '.dsh', 'skills')), 'dry run must not link skills');
 
+// Windows can reject symlink creation without Developer Mode. Planned link
+// actions carry a copy fallback rather than failing the whole migration.
+{
+  const { scan } = await import('../lib/scan.mjs');
+  const { planActions } = await import('../lib/apply.mjs');
+  const planned = planActions(scan({ home, project }));
+  assert.strictEqual(typeof planned.find((a) => a.label === 'CLAUDE.md (global)').fallback, 'function');
+  assert.strictEqual(typeof planned.find((a) => a.label === 'skill my-skill').fallback, 'function');
+}
+
+// The executor retries only permission-denied link actions through their
+// explicit copy fallback and reports what happened.
+{
+  const { applyActions } = await import('../lib/apply.mjs');
+  let copied = false;
+  const denied = Object.assign(new Error('symlink denied'), { code: 'EPERM' });
+  const actions = [{
+    status: 'move',
+    note: 'link -> destination',
+    exec: () => { throw denied; },
+    fallback: () => { copied = true; },
+    fallbackNote: 'copy -> destination (symlink unavailable)',
+  }];
+  applyActions(actions);
+  assert.strictEqual(copied, true);
+  assert.strictEqual(actions[0].status, 'done');
+  assert.strictEqual(actions[0].note, 'copy -> destination (symlink unavailable)');
+}
+
 // 2. apply
 const out = run(['--apply']);
 assert.match(out, /moved in/);
