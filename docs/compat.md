@@ -14,23 +14,23 @@ This matrix records what `dsh-movein` moves, what DSH already reads, and what re
 
 ## OpenCode compatibility
 
-OpenCode paths and precedence follow the official [configuration documentation](https://dev.opencode.ai/docs/config) and loader behavior. JSONC parsing uses comments and trailing commas exactly as OpenCode permits.
+OpenCode paths and precedence follow the official [V2 configuration documentation](https://opencode.ai/v2/docs/config) and [V1 migration guide](https://opencode.ai/v2/docs/migrate-v1). JSONC parsing uses comments and trailing commas exactly as OpenCode permits.
 
 | OpenCode asset | DSH compatibility | What happens |
 | --- | --- | --- |
 | Global config | **Read and merged** | `~/.config/opencode/opencode.json` and `opencode.jsonc` load first |
 | Custom config | **Read and merged** | `OPENCODE_CONFIG` loads after global config |
-| Project config | **Read and merged** | Configs from the current directory through the nearest Git root load after custom config, so project definitions win |
-| `.opencode` config | **Read and merged** | `opencode.json` and `opencode.jsonc` inside discovered `.opencode` directories participate in project precedence |
+| Project config | **Read and merged** | Direct configs load from the nearest Git root toward the current directory after custom config |
+| `.opencode` config | **Read and merged** | These configs load from the Git root toward the current directory after every direct project config |
 | Custom directory | **Read and merged** | `OPENCODE_CONFIG_DIR` contributes config and file-based assets before project definitions |
 | Project `AGENTS.md` | **Native, zero work** | DSH already reads the same file |
 | One global instruction file | **One symlink** | Linked to `$DSH_HOME/AGENTS.md` only when the destination is free |
 | Multiple, globbed, or remote instructions | **Manual** | Reported without concatenation or network fetching |
 | Skill directories | **Format compatible** | Both `skill` and `skills` aliases are found and linked into DSH roots |
-| Agent files and inline agents | **Converted** | Prompt and description become a DSH skill |
+| Agent files and inline agents | **Converted** | V1 `prompt`, V2 `system`, and the description become a DSH skill |
 | Command files and inline commands | **Converted** | Template and description become a user-invocable DSH skill |
-| Local MCP | **Mechanical conversion** | The command array becomes stdio command and args, while string environment values remain intact |
-| Remote MCP | **Mechanical conversion** | URL and string headers become a streamable HTTP row |
+| Local MCP | **Mechanical conversion** | V1 direct maps and V2 `mcp.servers` maps become stdio command and args while string environment values remain intact |
+| Remote MCP | **Mechanical conversion** | V1 direct maps and V2 `mcp.servers` maps become streamable HTTP rows |
 | Disabled or malformed MCP | **Skipped visibly** | No row is written and the dry run names the skipped server |
 | `{env:VAR}` | **Runtime reference** | Converted to `process.env.VAR` without reading the current value |
 | `{file:path}` | **Preserved for review** | The placeholder remains visible and no file is read |

@@ -34,24 +34,26 @@ write(path.join(globalRoot, 'GLOBAL.md'), '# global OpenCode rules');
 write(path.join(globalRoot, 'skills', 'global-skill', 'SKILL.md'), '---\nname: global-skill\ndescription: d\n---\nbody\n');
 
 write(path.join(project, 'opencode.jsonc'), `{
-  "agent": { "reviewer": { "description": "Project reviewer", "prompt": "Project review prompt" } },
+  "agents": { "reviewer": { "description": "Project reviewer", "system": "Project review prompt" } },
   "commands": { "release": { "description": "Project release", "template": "Project release command" } },
   "mcp": {
-    "shared": {
-      "type": "local",
-      "command": ["npx", "-y", "project-server"],
-      "environment": { "TOKEN": "{env:PROJECT_TOKEN}", "FILE": "{file:secret.txt}" },
+    "servers": {
+      "shared": {
+        "type": "local",
+        "command": ["npx", "-y", "project-server"],
+        "environment": { "TOKEN": "{env:PROJECT_TOKEN}", "FILE": "{file:secret.txt}" },
+      },
+      "remote": {
+        "type": "remote",
+        "url": "https://mcp.example.com",
+        "headers": { "Authorization": "Bearer {env:MCP_TOKEN}" },
+      },
+      "env-command": {
+        "type": "local",
+        "command": ["{env:MCP_BIN}", "--token={env:ARG_TOKEN}"],
+      },
+      "disabled": { "type": "local", "command": ["npx", "off"], "disabled": true },
     },
-    "remote": {
-      "type": "remote",
-      "url": "https://mcp.example.com",
-      "headers": { "Authorization": "Bearer {env:MCP_TOKEN}" },
-    },
-    "env-command": {
-      "type": "local",
-      "command": ["{env:MCP_BIN}", "--token={env:ARG_TOKEN}"],
-    },
-    "disabled": { "type": "local", "command": ["npx", "off"], "enabled": false },
   },
 }`);
 write(path.join(project, 'AGENTS.md'), '# project OpenCode rules');

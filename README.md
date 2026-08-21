@@ -52,13 +52,13 @@ Both tools are dry run by default and accept `apply=true` when you are ready.
 | --- | --- |
 | Claude Code | Global and project instructions, skills, slash commands, MCP servers, supported hooks, subagents, and mapped permission rules |
 | Codex | Global `AGENTS.md`, custom prompts, and stdio MCP servers from `config.toml` |
-| OpenCode | Instructions, skills, commands, agents, and local or remote MCP servers from JSON or JSONC config |
+| OpenCode | Instructions, skills, commands, agents, and local or remote MCP servers from V1 or V2 JSON and JSONC config |
 
 The [full compatibility matrix](docs/compat.md) names the source path, destination, preserved behavior, and unsupported parts for each origin.
 
 ## OpenCode support
 
-`--from opencode` follows OpenCode configuration precedence across the global config, `OPENCODE_CONFIG`, project configs, `.opencode` directories, and `OPENCODE_CONFIG_DIR`. Later project definitions win when names collide.
+`--from opencode` follows OpenCode configuration precedence across the global config, `OPENCODE_CONFIG`, project configs, `.opencode` directories, and `OPENCODE_CONFIG_DIR`. Direct project configs load from the Git root toward the current directory, then `.opencode` configs load in the same order.
 
 It supports both `opencode.json` and `opencode.jsonc`, including comments and trailing commas.
 
@@ -66,8 +66,10 @@ It supports both `opencode.json` and `opencode.jsonc`, including comments and tr
 - `agent` and `agents` files convert to DSH skills
 - `command` and `commands` files convert to user-invocable DSH skills
 - Inline agents and commands convert the same way as file-based assets
+- V1 agent `prompt` and V2 agent `system` both become the DSH skill body
 - Local MCP command arrays split into DSH stdio command and args
 - Remote MCP servers become streamable HTTP rows
+- V1 MCP maps and V2 `mcp.servers` maps are both supported
 - Disabled MCP servers stay disabled and appear in the report
 - `{env:VAR}` stays a runtime `process.env.VAR` reference
 - `{file:path}` stays visible for manual review and is never read by dsh-movein
