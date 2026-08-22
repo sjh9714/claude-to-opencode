@@ -1,34 +1,34 @@
-# dsh-movein
+# claude-to-opencode
 
 [中文](./README.zh.md)
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/dsh-movein"><img alt="npm" src="https://img.shields.io/npm/v/dsh-movein?style=flat-square&color=4b6fff"></a>
-  <a href="https://github.com/sjh9714/dsh-movein/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/sjh9714/dsh-movein/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://www.npmjs.com/package/claude-to-opencode"><img alt="npm" src="https://img.shields.io/npm/v/claude-to-opencode?style=flat-square&color=4b6fff"></a>
+  <a href="https://github.com/sjh9714/claude-to-opencode/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/sjh9714/claude-to-opencode/actions/workflows/ci.yml/badge.svg"></a>
   <a href="LICENSE"><img alt="MIT" src="https://img.shields.io/badge/license-MIT-2EA44F?style=flat-square"></a>
-  <a href="https://www.npmjs.com/package/dsh-movein"><img alt="downloads" src="https://img.shields.io/npm/dm/dsh-movein?style=flat-square&color=8250df"></a>
+  <a href="https://www.npmjs.com/package/claude-to-opencode"><img alt="downloads" src="https://img.shields.io/npm/dm/claude-to-opencode?style=flat-square&color=8250df"></a>
 </p>
 
 Leave Claude Code without rebuilding your setup.
 
 One command previews and moves auto memory, instructions, unconditional rules, commands, agents, and MCP servers into OpenCode. The same CLI can move Claude Code, Codex, or OpenCode assets into [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness).
 
-![Claude Code setup moving safely into OpenCode](https://raw.githubusercontent.com/sjh9714/dsh-movein/main/docs/demo.gif)
+![Claude Code setup moving safely into OpenCode](https://raw.githubusercontent.com/sjh9714/claude-to-opencode/main/docs/demo.gif)
 
 The animation recreates the real CLI flow. The generated files were also loaded with OpenCode `1.18.21` through `debug config`, `debug skill`, and `debug agent`.
 
 ## Claude Code to OpenCode
 
 ```sh
-npx dsh-movein --from claude --to opencode
-npx dsh-movein --from claude --to opencode --apply
-```
-
-The shorter search-friendly entry point runs the same code.
-
-```sh
 npx claude-to-opencode
 npx claude-to-opencode --apply
+```
+
+The full multi-origin CLI runs the same route.
+
+```sh
+npx dsh-movein --from claude --to opencode
+npx dsh-movein --from claude --to opencode --apply
 ```
 
 The first command is only a preview.
@@ -170,7 +170,7 @@ Listed in [awesome-dsh-plugin](https://github.com/awesome-dsh-plugin/awesome-dsh
 
 ## Star history
 
-[![Star History Chart](https://api.star-history.com/svg?repos=sjh9714/dsh-movein&type=Date)](https://star-history.com/#sjh9714/dsh-movein&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=sjh9714/claude-to-opencode&type=Date)](https://star-history.com/#sjh9714/claude-to-opencode&Date)
 
 ## License
 

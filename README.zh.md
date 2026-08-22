@@ -1,10 +1,10 @@
-# dsh-movein
+# claude-to-opencode
 
 [English](./README.md)
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/dsh-movein"><img alt="npm" src="https://img.shields.io/npm/v/dsh-movein?style=flat-square&color=4b6fff"></a>
-  <a href="https://github.com/sjh9714/dsh-movein/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/sjh9714/dsh-movein/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://www.npmjs.com/package/claude-to-opencode"><img alt="npm" src="https://img.shields.io/npm/v/claude-to-opencode?style=flat-square&color=4b6fff"></a>
+  <a href="https://github.com/sjh9714/claude-to-opencode/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/sjh9714/claude-to-opencode/actions/workflows/ci.yml/badge.svg"></a>
   <a href="LICENSE"><img alt="MIT" src="https://img.shields.io/badge/license-MIT-2EA44F?style=flat-square"></a>
 </p>
 
@@ -12,22 +12,22 @@
 
 一条命令先预演，再把自动记忆、指令、无路径条件的 rules、命令、agents 和 MCP 搬进 OpenCode。同一个 CLI 也能把 Claude Code、Codex 或 OpenCode 资产搬进 [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness)。
 
-![Claude Code 配置安全搬进 OpenCode](https://raw.githubusercontent.com/sjh9714/dsh-movein/main/docs/demo.gif)
+![Claude Code 配置安全搬进 OpenCode](https://raw.githubusercontent.com/sjh9714/claude-to-opencode/main/docs/demo.gif)
 
 动画复现真实 CLI 流程。生成结果还通过 OpenCode `1.18.21` 的 `debug config`、`debug skill` 和 `debug agent` 实际加载验证。
 
 ## Claude Code 搬到 OpenCode
 
 ```sh
-npx dsh-movein --from claude --to opencode
-npx dsh-movein --from claude --to opencode --apply
-```
-
-也可以使用更短、便于搜索的同一入口。
-
-```sh
 npx claude-to-opencode
 npx claude-to-opencode --apply
+```
+
+完整的多来源 CLI 运行同一条迁移路径。
+
+```sh
+npx dsh-movein --from claude --to opencode
+npx dsh-movein --from claude --to opencode --apply
 ```
 
 第一条命令只预演，不写文件。
