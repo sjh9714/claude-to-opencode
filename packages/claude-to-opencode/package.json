@@ -18,11 +18,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sjh9714/dsh-movein.git",
+    "url": "git+https://github.com/sjh9714/claude-to-opencode.git",
     "directory": "packages/claude-to-opencode"
   },
-  "homepage": "https://github.com/sjh9714/dsh-movein#claude-code-to-opencode",
-  "bugs": "https://github.com/sjh9714/dsh-movein/issues",
+  "homepage": "https://github.com/sjh9714/claude-to-opencode#claude-code-to-opencode",
+  "bugs": "https://github.com/sjh9714/claude-to-opencode/issues",
   "keywords": [
     "claude-code",
     "opencode",

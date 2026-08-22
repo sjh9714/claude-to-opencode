@@ -13,5 +13,5 @@ labels: bug
 
 **Versions**
 - dsh version (`npx @deepseek-ai/dsh --version`):
-- dsh-movein version:
+- claude-to-opencode or dsh-movein version:
 - OS:

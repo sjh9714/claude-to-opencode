@@ -13,4 +13,4 @@ It handles the current project's auto memory, global and project instructions, u
 
 Path-scoped Claude rules, hooks, permissions, and sessions stay manual because OpenCode does not give them the same semantics.
 
-This is the search-friendly entry point for [dsh-movein](https://github.com/sjh9714/dsh-movein), which owns the implementation and safety tests.
+The [repository](https://github.com/sjh9714/claude-to-opencode) also contains the full `dsh-movein` implementation and its safety tests.
