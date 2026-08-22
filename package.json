@@ -1,6 +1,6 @@
 {
   "name": "dsh-movein",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Safely move skills, commands, agents, and MCP config between Claude Code, OpenCode, Codex, and DeepSeek Harness.",
   "license": "MIT",
   "type": "module",

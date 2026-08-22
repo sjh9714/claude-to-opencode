@@ -10,7 +10,7 @@
 
 离开 Claude Code 时，不用重建已经积累的配置。
 
-一条命令先预演，再把指令、命令、agents 和 MCP 搬进 OpenCode。同一个 CLI 也能把 Claude Code、Codex 或 OpenCode 资产搬进 [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness)。
+一条命令先预演，再把指令、无路径条件的 rules、命令、agents 和 MCP 搬进 OpenCode。同一个 CLI 也能把 Claude Code、Codex 或 OpenCode 资产搬进 [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness)。
 
 ![Claude Code 配置安全搬进 OpenCode](https://raw.githubusercontent.com/sjh9714/dsh-movein/main/docs/demo.gif)
 
@@ -26,6 +26,7 @@ npx dsh-movein --from claude --to opencode --apply
 第一条命令只预演，不写文件。
 
 - 全局和项目 `CLAUDE.md` 在目标空闲时连接到对应的 OpenCode `AGENTS.md`
+- 无路径条件的 `.claude/rules` 写入 OpenCode instructions；带路径条件的规则保持手动检查，避免错误地全局生效
 - OpenCode 原生读取 `.claude/skills`，所以不会重复复制 skills
 - commands 原样复制，`$ARGUMENTS` 保持不变
 - Claude subagents 转成 OpenCode subagents，不猜测工具权限
@@ -70,7 +71,7 @@ dsh plugin --profile web add dsh-movein
 
 | 路径 | 搬入内容 |
 | --- | --- |
-| Claude Code 到 OpenCode | 指令、commands、subagents、本地与远程 MCP。skills 原生读取，不重复复制 |
+| Claude Code 到 OpenCode | 指令、无路径条件的 rules、commands、subagents、本地与远程 MCP。skills 原生读取，不重复复制 |
 | Claude Code 到 DSH | 全局与项目指令、技能、斜杠命令、MCP、已支持 hooks、子代理和可映射权限规则 |
 | Codex 到 DSH | 全局 `AGENTS.md`、自定义 prompts 和 `config.toml` 中的 stdio MCP |
 | OpenCode 到 DSH | JSON 或 JSONC 中的指令、技能、命令、agents、本地与远程 MCP |

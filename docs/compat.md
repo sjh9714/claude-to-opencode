@@ -12,6 +12,8 @@ This route was loaded end to end with OpenCode `1.18.21` using `debug config`, `
 | --- | --- | --- |
 | Global `~/.claude/CLAUDE.md` | Linked instruction file | Links to `~/.config/opencode/AGENTS.md` only when that target is free |
 | Project `CLAUDE.md` | Linked instruction file | Links to the project `AGENTS.md` only when that target is free |
+| Unconditional `.claude/rules/*.md` | Referenced from config | Added to the matching OpenCode `instructions` array without copying the file |
+| Path-scoped `.claude/rules/*.md` | Manual | Reported without conversion because OpenCode has no equivalent conditional path scope |
 | Skills | Native | Current OpenCode reads global and project `.claude/skills` directly, so no duplicate is created |
 | Slash commands | Copied | Markdown and `$ARGUMENTS` stay unchanged in the matching OpenCode command directory |
 | Subagents | Converted | Description and prompt body become an OpenCode subagent. Claude tool permissions remain manual |

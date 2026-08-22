@@ -17,6 +17,9 @@ const globalOpenCode = path.join(home, '.config', 'opencode');
 fs.mkdirSync(path.join(home, '.claude', 'skills', 'shared-skill'), { recursive: true });
 fs.writeFileSync(path.join(home, '.claude', 'skills', 'shared-skill', 'SKILL.md'), '---\nname: shared-skill\ndescription: Shared skill\n---\nBody\n');
 fs.writeFileSync(path.join(home, '.claude', 'CLAUDE.md'), '# Global Claude instructions\n');
+fs.mkdirSync(path.join(home, '.claude', 'rules', 'shared'), { recursive: true });
+fs.writeFileSync(path.join(home, '.claude', 'rules', 'preferences.md'), '# Personal preferences\n');
+fs.writeFileSync(path.join(home, '.claude', 'rules', 'shared', 'workflow.md'), '# Shared workflow\n');
 fs.mkdirSync(path.join(home, '.claude', 'commands'), { recursive: true });
 fs.writeFileSync(path.join(home, '.claude', 'commands', 'ship.md'), '---\ndescription: Ship a release\n---\nShip $ARGUMENTS safely.\n');
 fs.mkdirSync(path.join(home, '.claude', 'agents'), { recursive: true });
@@ -31,7 +34,10 @@ fs.writeFileSync(path.join(home, '.claude.json'), JSON.stringify({
 
 fs.mkdirSync(path.join(project, '.claude', 'commands'), { recursive: true });
 fs.mkdirSync(path.join(project, '.claude', 'agents'), { recursive: true });
+fs.mkdirSync(path.join(project, '.claude', 'rules'), { recursive: true });
 fs.writeFileSync(path.join(project, 'CLAUDE.md'), '# Project Claude instructions\n');
+fs.writeFileSync(path.join(project, '.claude', 'rules', 'testing.md'), '# Test rules\n');
+fs.writeFileSync(path.join(project, '.claude', 'rules', 'api.md'), '---\npaths:\n  - "src/api/**/*.ts"\n---\n# API rules\n');
 fs.writeFileSync(path.join(project, '.claude', 'commands', 'test.md'), 'Run tests for $ARGUMENTS.\n');
 fs.writeFileSync(path.join(project, '.claude', 'agents', 'planner.md'), '---\ndescription: Plan work\n---\nMake a plan.\n');
 fs.writeFileSync(path.join(project, '.mcp.json'), JSON.stringify({
@@ -62,6 +68,10 @@ assert.match(dry, /skill shared-skill.*OpenCode reads the Claude skill directory
 assert.match(dry, /command \/ship.*already exists/);
 assert.match(dry, /MCP unsafe.*plaintext secret detected, not copied/);
 assert.match(dry, /source tool permissions need manual review/);
+assert.match(dry, /global Claude rules.*reference 2 rule\(s\)/);
+assert.match(dry, /project Claude rules.*reference 1 rule\(s\)/);
+assert.match(dry, /rule api.*path-scoped Claude rule needs manual review/);
+assert.match(dry, /4 rules/);
 assert.ok(!fs.existsSync(path.join(globalOpenCode, 'AGENTS.md')), 'dry run must not write global instructions');
 assert.ok(!fs.existsSync(path.join(project, 'AGENTS.md')), 'dry run must not write project instructions');
 assert.ok(!fs.existsSync(path.join(project, '.opencode', 'commands', 'test.md')), 'dry run must not copy commands');
@@ -85,13 +95,27 @@ assert.deepStrictEqual(globalConfig.mcp.existing.command, ['keep'], 'existing MC
 assert.deepStrictEqual(globalConfig.mcp.github.command, ['npx', '-y', 'github-mcp']);
 assert.strictEqual(globalConfig.mcp.github.environment.TOKEN, '{env:GITHUB_TOKEN}');
 assert.ok(!globalConfig.mcp.unsafe, 'plaintext secret server not copied');
+assert.deepStrictEqual(globalConfig.instructions, [
+  '~/.claude/rules/preferences.md',
+  '~/.claude/rules/shared/workflow.md',
+]);
 const projectConfig = JSON.parse(fs.readFileSync(path.join(project, 'opencode.json'), 'utf8'));
 assert.strictEqual(projectConfig.mcp.remote.type, 'remote');
 assert.strictEqual(projectConfig.mcp.remote.headers.Authorization, 'Bearer {env:MCP_TOKEN}');
+assert.deepStrictEqual(projectConfig.instructions, ['.claude/rules/testing.md']);
+assert.ok(!projectConfig.instructions.includes('.claude/rules/api.md'), 'path-scoped rules are not over-applied');
 assert.ok(fs.readdirSync(globalOpenCode).some((name) => name.startsWith('opencode.jsonc.dsh-movein.') && name.endsWith('.bak')), 'global config backed up');
 const manifest = JSON.parse(fs.readFileSync(path.join(globalOpenCode, 'dsh-movein-manifest.json'), 'utf8'));
 assert.ok(manifest.at(-1).moved.some((item) => item.kind === 'config' && item.dest.endsWith('opencode.jsonc')));
 assert.ok(manifest.at(-1).moved.some((item) => item.kind === 'agent' && item.dest.endsWith('reviewer.md')));
+assert.ok(manifest.at(-1).moved.some((item) => item.kind === 'config' && item.label === 'project Claude rules'));
+
+const repeated = run();
+assert.match(repeated, /rule preferences.*already references it/);
+assert.deepStrictEqual(parse(fs.readFileSync(path.join(globalOpenCode, 'opencode.jsonc'), 'utf8')).instructions, [
+  '~/.claude/rules/preferences.md',
+  '~/.claude/rules/shared/workflow.md',
+], 'repeated runs do not duplicate rule references');
 
 const converted = claudeAgentToOpenCode('No frontmatter body', 'plain');
 assert.match(converted.text, /description: "Claude Code agent plain"/);
@@ -113,6 +137,19 @@ const blocked = spawnSync(process.execPath, [cli, badProject, '--to', 'opencode'
 assert.strictEqual(blocked.status, 1);
 assert.match(blocked.stdout, /invalid OpenCode config blocked every write/);
 assert.ok(!fs.existsSync(path.join(badHome, '.config', 'opencode', 'commands', 'blocked.md')), 'parse error blocks command writes too');
+
+const wrongTypeHome = path.join(tmp, 'wrong-type-home');
+const wrongTypeProject = path.join(tmp, 'wrong-type-project');
+fs.mkdirSync(path.join(wrongTypeProject, '.claude', 'rules'), { recursive: true });
+fs.writeFileSync(path.join(wrongTypeProject, '.claude', 'rules', 'keep.md'), '# Keep me\n');
+fs.writeFileSync(path.join(wrongTypeProject, 'opencode.json'), '{ "instructions": "keep-existing" }\n');
+const wrongType = spawnSync(process.execPath, [cli, wrongTypeProject, '--to', 'opencode', '--apply'], {
+  env: { ...process.env, HOME: wrongTypeHome, XDG_CONFIG_HOME: path.join(wrongTypeHome, '.config') },
+  encoding: 'utf8',
+});
+assert.strictEqual(wrongType.status, 1);
+assert.match(wrongType.stdout, /instructions must be a string array/);
+assert.strictEqual(fs.readFileSync(path.join(wrongTypeProject, 'opencode.json'), 'utf8'), '{ "instructions": "keep-existing" }\n');
 
 const unsupported = spawnSync(process.execPath, [cli, project, '--from', 'codex', '--to', 'opencode'], { env, encoding: 'utf8' });
 assert.strictEqual(unsupported.status, 1);
