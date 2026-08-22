@@ -1,6 +1,6 @@
 {
   "name": "claude-to-opencode",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Safely preview and move Claude Code memory, instructions, rules, commands, agents, skills, and MCP config into OpenCode.",
   "license": "MIT",
   "type": "module",
