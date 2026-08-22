@@ -1,0 +1,33 @@
+import assert from 'node:assert';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+
+const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const cli = path.join(root, 'packages', 'claude-to-opencode', 'bin', 'cli.mjs');
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-to-opencode-'));
+const home = path.join(tmp, 'home');
+const project = path.join(tmp, 'project');
+fs.mkdirSync(path.join(project, '.claude', 'rules'), { recursive: true });
+fs.writeFileSync(path.join(project, '.claude', 'rules', 'testing.md'), '# Testing rule\n');
+
+const env = { ...process.env, HOME: home, XDG_CONFIG_HOME: path.join(home, '.config') };
+const dry = spawnSync(process.execPath, [cli, project], { env, encoding: 'utf8' });
+assert.strictEqual(dry.status, 0);
+assert.match(dry.stdout, /Claude Code -> OpenCode safe move/);
+assert.match(dry.stdout, /project Claude rules/);
+assert.match(dry.stdout, /dry run only/);
+assert.ok(!fs.existsSync(path.join(project, 'opencode.json')), 'alias stays dry by default');
+
+const help = spawnSync(process.execPath, [cli, '--help'], { env, encoding: 'utf8' });
+assert.strictEqual(help.status, 0);
+assert.match(help.stdout, /npx claude-to-opencode/);
+
+const wrongRoute = spawnSync(process.execPath, [cli, '--to', 'dsh'], { env, encoding: 'utf8' });
+assert.strictEqual(wrongRoute.status, 1);
+assert.match(wrongRoute.stderr, /usage is npx claude-to-opencode/);
+
+fs.rmSync(tmp, { recursive: true, force: true });
+console.log('claude-to-opencode alias assertions passed');

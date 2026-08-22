@@ -27,7 +27,7 @@
     "jsonc-parser": "^3.3.1"
   },
   "scripts": {
-    "test": "node test/test.mjs && node test/opencode.test.mjs && node test/opencode-flow.test.mjs && node test/to-opencode.test.mjs"
+    "test": "node test/test.mjs && node test/opencode.test.mjs && node test/opencode-flow.test.mjs && node test/to-opencode.test.mjs && node test/alias-package.test.mjs"
   },
   "keywords": [
     "dsh",

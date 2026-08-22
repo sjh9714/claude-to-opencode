@@ -24,6 +24,13 @@ npx dsh-movein --from claude --to opencode
 npx dsh-movein --from claude --to opencode --apply
 ```
 
+The shorter search-friendly entry point runs the same code.
+
+```sh
+npx claude-to-opencode
+npx claude-to-opencode --apply
+```
+
 The first command is only a preview.
 
 - Global and project `CLAUDE.md` files link to the matching OpenCode `AGENTS.md` when the destination is free
