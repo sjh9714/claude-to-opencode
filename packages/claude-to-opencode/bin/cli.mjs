@@ -11,7 +11,7 @@ const help = args.includes('--help') || args.includes('-h');
 if (help) {
   console.log(`claude-to-opencode
 
-Safely preview and move Claude Code memory and setup into OpenCode.
+Safely preview and move Claude Code memory, setup, and command hooks into OpenCode.
 
 Usage: npx claude-to-opencode [projectDir] [--apply] [--copy]
 
