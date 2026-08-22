@@ -1,7 +1,7 @@
 {
   "name": "claude-to-opencode",
-  "version": "0.2.0",
-  "description": "Safely preview and move Claude Code memory, hooks, rules, commands, agents, skills, and MCP config into OpenCode.",
+  "version": "0.3.0",
+  "description": "Keep Claude Code memory and PreToolUse or PostToolUse command guardrails when moving to OpenCode. Dry run first.",
   "license": "MIT",
   "type": "module",
   "bin": {
@@ -14,7 +14,7 @@
     "node": ">=20"
   },
   "dependencies": {
-    "dsh-movein": ">=0.10.0 <0.11.0"
+    "dsh-movein": ">=0.11.0 <0.12.0"
   },
   "repository": {
     "type": "git",
@@ -31,6 +31,11 @@
     "opencode-migration",
     "claude-code-memory",
     "claude-code-hooks",
+    "pretooluse",
+    "posttooluse",
+    "ai-guardrails",
+    "secret-scanning",
+    "linting",
     "agent-migration",
     "mcp",
     "rules",
