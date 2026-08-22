@@ -12,6 +12,7 @@ This route was loaded end to end with OpenCode `1.18.21` using `debug config`, `
 | --- | --- | --- |
 | Global `~/.claude/CLAUDE.md` | Linked instruction file | Links to `~/.config/opencode/AGENTS.md` only when that target is free |
 | Project `CLAUDE.md` | Linked instruction file | Links to the project `AGENTS.md` only when that target is free |
+| Project auto memory `MEMORY.md` | Referenced from project config | Keeps the file in place, respects `autoMemoryEnabled` and `autoMemoryDirectory`, and sees later updates |
 | Unconditional `.claude/rules/*.md` | Referenced from config | Added to the matching OpenCode `instructions` array without copying the file |
 | Path-scoped `.claude/rules/*.md` | Manual | Reported without conversion because OpenCode has no equivalent conditional path scope |
 | Skills | Native | Current OpenCode reads global and project `.claude/skills` directly, so no duplicate is created |

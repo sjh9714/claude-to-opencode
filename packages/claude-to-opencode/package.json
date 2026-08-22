@@ -1,7 +1,7 @@
 {
   "name": "claude-to-opencode",
-  "version": "0.1.0",
-  "description": "Safely preview and move Claude Code instructions, rules, commands, agents, skills, and MCP config into OpenCode.",
+  "version": "0.1.1",
+  "description": "Safely preview and move Claude Code memory, instructions, rules, commands, agents, skills, and MCP config into OpenCode.",
   "license": "MIT",
   "type": "module",
   "bin": {
@@ -14,7 +14,7 @@
     "node": ">=20"
   },
   "dependencies": {
-    "dsh-movein": "^0.8.1"
+    "dsh-movein": ">=0.8.1 <0.10.0"
   },
   "repository": {
     "type": "git",
@@ -29,6 +29,7 @@
     "claude-to-opencode",
     "claude-code-migration",
     "opencode-migration",
+    "claude-code-memory",
     "agent-migration",
     "mcp",
     "rules",

@@ -11,7 +11,7 @@ const help = args.includes('--help') || args.includes('-h');
 if (help) {
   console.log(`claude-to-opencode
 
-Safely preview and move a Claude Code setup into OpenCode.
+Safely preview and move Claude Code memory and setup into OpenCode.
 
 Usage: npx claude-to-opencode [projectDir] [--apply] [--copy]
 
@@ -33,13 +33,14 @@ if (unknown || positionals.length > 1) {
 }
 
 const require = createRequire(import.meta.url);
-let entry;
-try {
-  entry = join(dirname(require.resolve('dsh-movein/package.json')), 'bin', 'cli.mjs');
-} catch {
-  const checkoutEntry = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'bin', 'cli.mjs');
-  if (existsSync(checkoutEntry)) entry = checkoutEntry;
-  else throw new Error('dsh-movein is not installed');
+const checkoutEntry = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'bin', 'cli.mjs');
+let entry = existsSync(checkoutEntry) ? checkoutEntry : undefined;
+if (!entry) {
+  try {
+    entry = join(dirname(require.resolve('dsh-movein/package.json')), 'bin', 'cli.mjs');
+  } catch {
+    throw new Error('dsh-movein is not installed');
+  }
 }
 
 const result = spawnSync(process.execPath, [entry, ...args, '--from=claude', '--to=opencode'], {
