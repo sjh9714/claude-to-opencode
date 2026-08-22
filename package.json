@@ -1,7 +1,7 @@
 {
   "name": "dsh-movein",
-  "version": "0.11.0",
-  "description": "Keep Claude Code memory and command guardrails when moving to OpenCode or DeepSeek Harness. Dry run first.",
+  "version": "0.11.1",
+  "description": "Move Claude Code, Codex, and OpenCode skills, commands, agents, and MCP config into DeepSeek Harness.",
   "license": "MIT",
   "type": "module",
   "main": "shell/index.mjs",
@@ -27,8 +27,7 @@
     "jsonc-parser": "^3.3.1"
   },
   "scripts": {
-    "test": "node test/test.mjs && node test/opencode.test.mjs && node test/opencode-flow.test.mjs && node test/to-opencode.test.mjs && node test/opencode-hooks.test.mjs && node test/hook-package.test.mjs && node test/alias-package.test.mjs",
-    "build:hook-package": "node scripts/sync-opencode-hook-package.mjs"
+    "test": "node test/test.mjs && node test/opencode.test.mjs && node test/opencode-flow.test.mjs && node test/to-opencode.test.mjs && node test/opencode-hooks.test.mjs && node test/alias-package.test.mjs"
   },
   "keywords": [
     "dsh",
@@ -37,14 +36,6 @@
     "claude-code",
     "codex",
     "opencode",
-    "claude-to-opencode",
-    "claude-code-memory",
-    "claude-code-hooks",
-    "pretooluse",
-    "posttooluse",
-    "ai-guardrails",
-    "secret-scanning",
-    "linting",
     "agent-migration",
     "config-portability",
     "jsonc",
@@ -56,6 +47,6 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sjh9714/claude-to-opencode.git"
+    "url": "git+https://github.com/sjh9714/dsh-movein.git"
   }
 }
