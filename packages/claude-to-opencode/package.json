@@ -1,0 +1,41 @@
+{
+  "name": "claude-to-opencode",
+  "version": "0.1.0",
+  "description": "Safely preview and move Claude Code instructions, rules, commands, agents, skills, and MCP config into OpenCode.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "claude-to-opencode": "bin/cli.mjs"
+  },
+  "files": [
+    "bin"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "dsh-movein": "^0.8.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sjh9714/dsh-movein.git",
+    "directory": "packages/claude-to-opencode"
+  },
+  "homepage": "https://github.com/sjh9714/dsh-movein#claude-code-to-opencode",
+  "bugs": "https://github.com/sjh9714/dsh-movein/issues",
+  "keywords": [
+    "claude-code",
+    "opencode",
+    "claude-to-opencode",
+    "claude-code-migration",
+    "opencode-migration",
+    "agent-migration",
+    "mcp",
+    "rules",
+    "commands",
+    "subagents"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

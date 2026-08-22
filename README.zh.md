@@ -23,6 +23,13 @@ npx dsh-movein --from claude --to opencode
 npx dsh-movein --from claude --to opencode --apply
 ```
 
+也可以使用更短、便于搜索的同一入口。
+
+```sh
+npx claude-to-opencode
+npx claude-to-opencode --apply
+```
+
 第一条命令只预演，不写文件。
 
 - 全局和项目 `CLAUDE.md` 在目标空闲时连接到对应的 OpenCode `AGENTS.md`
