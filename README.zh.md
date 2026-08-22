@@ -8,13 +8,34 @@
   <a href="LICENSE"><img alt="MIT" src="https://img.shields.io/badge/license-MIT-2EA44F?style=flat-square"></a>
 </p>
 
-一条命令，把 Claude Code、Codex 或 OpenCode 配置搬进 [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness)。
+离开 Claude Code 时，不用重建已经积累的配置。
 
-先预演，再搬入。已有目标不会被覆盖。
+一条命令先预演，再把指令、命令、agents 和 MCP 搬进 OpenCode。同一个 CLI 也能把 Claude Code、Codex 或 OpenCode 资产搬进 [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness)。
 
-![Claude Code、Codex 和 OpenCode 搬入 DSH](https://raw.githubusercontent.com/sjh9714/dsh-movein/main/docs/demo.gif)
+![Claude Code 配置安全搬进 OpenCode](https://raw.githubusercontent.com/sjh9714/dsh-movein/main/docs/demo.gif)
 
-## 选择来源
+动画复现真实 CLI 流程。生成结果还通过 OpenCode `1.18.21` 的 `debug config`、`debug skill` 和 `debug agent` 实际加载验证。
+
+## Claude Code 搬到 OpenCode
+
+```sh
+npx dsh-movein --from claude --to opencode
+npx dsh-movein --from claude --to opencode --apply
+```
+
+第一条命令只预演，不写文件。
+
+- 全局和项目 `CLAUDE.md` 在目标空闲时连接到对应的 OpenCode `AGENTS.md`
+- OpenCode 原生读取 `.claude/skills`，所以不会重复复制 skills
+- commands 原样复制，`$ARGUMENTS` 保持不变
+- Claude subagents 转成 OpenCode subagents，不猜测工具权限
+- 用户级和项目级 MCP 分别合并进对应的 OpenCode JSON 或 JSONC
+- `${VAR}` 转成 `{env:VAR}`，不会读取当前环境值
+- 已有目标和同名 MCP 跳过
+- 疑似明文密钥的 MCP 只报告，不复制
+- 目标配置解析失败时阻止全部写入
+
+## 搬进 DSH
 
 ```sh
 # Claude Code
@@ -47,11 +68,12 @@ dsh plugin --profile web add dsh-movein
 
 ## 兼容范围
 
-| 来源 | 搬入内容 |
+| 路径 | 搬入内容 |
 | --- | --- |
-| Claude Code | 全局与项目指令、技能、斜杠命令、MCP、已支持 hooks、子代理和可映射权限规则 |
-| Codex | 全局 `AGENTS.md`、自定义 prompts 和 `config.toml` 中的 stdio MCP |
-| OpenCode | JSON 或 JSONC 中的指令、技能、命令、agents、本地与远程 MCP |
+| Claude Code 到 OpenCode | 指令、commands、subagents、本地与远程 MCP。skills 原生读取，不重复复制 |
+| Claude Code 到 DSH | 全局与项目指令、技能、斜杠命令、MCP、已支持 hooks、子代理和可映射权限规则 |
+| Codex 到 DSH | 全局 `AGENTS.md`、自定义 prompts 和 `config.toml` 中的 stdio MCP |
+| OpenCode 到 DSH | JSON 或 JSONC 中的指令、技能、命令、agents、本地与远程 MCP |
 
 [完整兼容性表](docs/compat.md) 会逐项说明来源路径、DSH 目标、保留行为和不支持内容。
 
@@ -79,6 +101,9 @@ dsh plugin --profile web add dsh-movein
 
 - 默认只预演
 - 已有目标跳过
+- 保留 OpenCode JSONC 注释和无关设置
+- 合并前在原文件旁创建 OpenCode 配置备份
+- `~/.config/opencode/dsh-movein-manifest.json` 记录搬家结果
 - Windows 拒绝创建符号链接时会自动改为复制，并在报告中注明
 - 每次写入前备份 `cordis.patch.yml`
 - `npx dsh-movein restore` 恢复最新备份
@@ -119,7 +144,7 @@ npx dsh-movein --reverse --apply
 
 ## 项目状态
 
-已在 DSH `0.1.0-rc.6` 和 `0.1.0-rc.7` 完成端到端验证。CI 使用 `npm ci` 在 Linux、macOS 和 Windows 上运行同一套测试。
+已在 OpenCode `1.18.21`、DSH `0.1.0-rc.6` 和 `0.1.0-rc.7` 完成端到端验证。CI 使用 `npm ci` 在 Linux、macOS 和 Windows 上运行同一套测试。
 
 ## 许可
 

@@ -12,7 +12,7 @@
   #tbody{padding:22px 26px;font:500 21px/1.62 ui-monospace,Menlo,Monaco,monospace;color:#d7dce6;white-space:pre-wrap}
   .dim{color:#6b7383}.grn{color:#7ee08a}.arw{color:#e8c66a}.hdr{color:#9ecbff}
   .ln{opacity:0}
-  /* dsh web */
+  /* OpenCode */
   #dsh{left:990px;top:120px;width:870px;height:840px;background:#101319;border:1px solid #262b35}
   .dbar{height:52px;background:#161a22;display:flex;align-items:center;padding:0 18px;gap:10px;color:#aeb6c6;font:600 18px ui-sans-serif,system-ui;border-bottom:1px solid #232937}
   .dbar .url{margin-left:auto;color:#5d6575;font:400 15px ui-monospace,Menlo,monospace}
@@ -36,40 +36,40 @@
       <div class="ti">zsh  moving day</div>
     </div>
     <div id="tbody"><span class="dim">$ </span><span id="cmd1"></span><span id="caret1" style="display:inline-block;width:11px;height:24px;background:#d7dce6;vertical-align:-3px"></span>
-<span class="ln" id="l0"><span class="hdr">📦 Claude Code + Codex + OpenCode -> DSH</span>
-</span><span class="ln" id="l1">  <span class="grn">✓</span> AGENTS.md (project)  DSH reads it natively
-</span><span class="ln" id="l2">  <span class="arw">→</span> skill terminal-design  link -> ~/.dsh/skills/
-</span><span class="ln" id="l3">  <span class="arw">→</span> agent reviewer  convert -> .dsh/skills/reviewer
-</span><span class="ln" id="l4">  <span class="arw">→</span> command /release  convert -> .dsh/skills/release
-</span><span class="ln" id="l5">  <span class="arw">→</span> 2 MCP servers  block -> ~/.dsh/cordis.patch.yml
+<span class="ln" id="l0"><span class="hdr">📦 Claude Code -> OpenCode safe move</span>
+</span><span class="ln" id="l1">  <span class="arw">→</span> CLAUDE.md  link -> OpenCode AGENTS.md
+</span><span class="ln" id="l2">  <span class="grn">✓</span> skill terminal-design  OpenCode reads it directly
+</span><span class="ln" id="l3">  <span class="arw">→</span> agent reviewer  write -> OpenCode agents/
+</span><span class="ln" id="l4">  <span class="arw">→</span> command /release  write -> OpenCode commands/
+</span><span class="ln" id="l5">  <span class="arw">→</span> 2 MCP servers  merge -> opencode.jsonc
 </span><span class="ln" id="l6">
   <span class="dim">found  3 skills · 1 command · 2 MCP · 1 agent</span>
-</span><span class="ln" id="l7">  <span class="dim">dry run, nothing written. --apply to move in.</span>
+</span><span class="ln" id="l7">  <span class="dim">dry run only. --apply when the paths look right.</span>
 
 </span><span class="ln" id="l8"><span class="dim">$ </span><span id="cmd2"></span>
-</span><span class="ln" id="l9">  <span class="grn">✓ AGENTS.md   ✓ 3 skills   ✓ 2 MCP servers</span>
-</span><span class="ln" id="l10">  <span class="grn">moved in.</span> <span class="dim">Verify with  dsh --profile web --dump-config</span>
+</span><span class="ln" id="l9">  <span class="grn">✓ AGENTS.md   ✓ commands   ✓ agents   ✓ MCP</span>
+</span><span class="ln" id="l10">  <span class="grn">moved.</span> <span class="dim">OpenCode loaded every generated asset.</span>
 </span></div>
   </div>
 
   <div class="win" id="dsh">
-    <div class="dbar">🐳 DeepSeek Harness <span class="url">127.0.0.1:3080</span></div>
+    <div class="dbar">OpenCode <span class="url">Claude setup ready</span></div>
     <div id="chat">
       <div class="sysline">new session · ~/code/my-app</div>
     </div>
     <div id="menu">
-      <div class="mhead">SKILLS · just moved in from OpenCode</div>
-      <div class="mi" id="m0">/terminal-design <span class="badge">imported</span><span class="desc">terminal UI rules</span></div>
-      <div class="mi" id="m1">/reviewer <span class="badge">imported</span><span class="desc">OpenCode agent</span></div>
-      <div class="mi" id="m2">/release <span class="badge">imported</span><span class="desc">OpenCode command</span></div>
-      <div class="mi" id="m3">mcp__github__search <span class="badge">ready</span><span class="desc">same MCP tools</span></div>
+      <div class="mhead">COMMANDS + AGENTS · moved from Claude Code</div>
+      <div class="mi" id="m0">/release <span class="badge">ready</span><span class="desc">Claude command</span></div>
+      <div class="mi" id="m1">@reviewer <span class="badge">ready</span><span class="desc">Claude subagent</span></div>
+      <div class="mi" id="m2">terminal-design <span class="badge">native</span><span class="desc">Claude skill</span></div>
+      <div class="mi" id="m3">github MCP <span class="badge">ready</span><span class="desc">env reference kept</span></div>
     </div>
     <div id="composer"><span id="typed2"></span><span id="caret2"></span></div>
   </div>
 
 </div></div>
 <script>
-const CMD1='npx dsh-movein --from opencode', CMD2='npx dsh-movein --from opencode --apply';
+const CMD1='npx dsh-movein --to opencode', CMD2='npx dsh-movein --to opencode --apply';
 const T={
   type1:[300,1100], enter1:[1100,1250],
   scan:[1250,3300],        // header + 6 report lines staggered

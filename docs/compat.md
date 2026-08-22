@@ -1,8 +1,28 @@
-# Claude Code, Codex, and OpenCode to DeepSeek Harness
+# Agent setup compatibility
 
 This matrix records what `dsh-movein` moves, what DSH already reads, and what remains manual. The DSH behavior was measured against `0.1.0-rc.6` and rechecked end to end on `0.1.0-rc.7`.
 
 一份实测的 Claude Code 与 DeepSeek Harness 资产兼容性对照表，基于 DSH `0.1.0-rc.6` 源码逐项验证。中文摘要在文末。
+
+## Claude Code to OpenCode
+
+This route was loaded end to end with OpenCode `1.18.21` using `debug config`, `debug skill`, and `debug agent`.
+
+| Claude Code asset | OpenCode result | What happens |
+| --- | --- | --- |
+| Global `~/.claude/CLAUDE.md` | Linked instruction file | Links to `~/.config/opencode/AGENTS.md` only when that target is free |
+| Project `CLAUDE.md` | Linked instruction file | Links to the project `AGENTS.md` only when that target is free |
+| Skills | Native | Current OpenCode reads global and project `.claude/skills` directly, so no duplicate is created |
+| Slash commands | Copied | Markdown and `$ARGUMENTS` stay unchanged in the matching OpenCode command directory |
+| Subagents | Converted | Description and prompt body become an OpenCode subagent. Claude tool permissions remain manual |
+| Local MCP | Mechanical conversion | Command and args become one command array. `${VAR}` becomes `{env:VAR}` |
+| Remote MCP | Mechanical conversion | URL and headers move into the target scope |
+| Existing target | Skipped | No command, agent, instruction file, or MCP definition is overwritten |
+| Plaintext secret | Skipped | A secret-looking MCP value is reported and not copied |
+| JSONC | Preserved | Comments, trailing commas, and unrelated settings remain intact |
+| Invalid target config | Apply blocked | A parse error blocks every write |
+| Hooks and permissions | Manual | The semantics differ, so dsh-movein does not guess |
+| Sessions | Out of scope | Session files are not read or written |
 
 ## Origin overview
 
