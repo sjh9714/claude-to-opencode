@@ -20,11 +20,14 @@ This route was loaded end to end with OpenCode `1.18.21` using `debug config`, `
 | Subagents | Converted | Description and prompt body become an OpenCode subagent. Claude tool permissions remain manual |
 | Local MCP | Mechanical conversion | Command and args become one command array. `${VAR}` becomes `{env:VAR}` |
 | Remote MCP | Mechanical conversion | URL and headers move into the target scope |
+| `PreToolUse` command hooks | Live plugin bridge | A generated global OpenCode plugin reads the original Claude settings at runtime. Matchers, exit code 2 blocking, structured deny results, and `updatedInput` are preserved |
+| `PostToolUse` command hooks | Live plugin bridge | The same plugin runs checks after a successful tool call and adds blocking stderr or structured feedback to the OpenCode tool result |
+| Other hook events and types | Manual | Stop timing, prompt, agent, HTTP, async, and conditional `if` semantics are not guessed |
 | Existing target | Skipped | No command, agent, instruction file, or MCP definition is overwritten |
 | Plaintext secret | Skipped | A secret-looking MCP value is reported and not copied |
 | JSONC | Preserved | Comments, trailing commas, and unrelated settings remain intact |
 | Invalid target config | Apply blocked | A parse error blocks every write |
-| Hooks and permissions | Manual | The semantics differ, so dsh-movein does not guess |
+| Permissions | Manual | The semantics differ, so dsh-movein does not guess |
 | Sessions | Out of scope | Session files are not read or written |
 
 ## Origin overview

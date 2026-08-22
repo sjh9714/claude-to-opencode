@@ -41,19 +41,19 @@
 </span><span class="ln" id="l2">  <span class="arw">→</span> CLAUDE.md  link -> OpenCode AGENTS.md
 </span><span class="ln" id="l3">  <span class="arw">→</span> agent reviewer  write -> OpenCode agents/
 </span><span class="ln" id="l4">  <span class="arw">→</span> command /release  write -> OpenCode commands/
-</span><span class="ln" id="l5">  <span class="arw">→</span> 2 MCP servers  merge -> opencode.jsonc
+</span><span class="ln" id="l5">  <span class="arw">→</span> 2 command hooks  live bridge -> OpenCode plugin
 </span><span class="ln" id="l6">
-  <span class="dim">found  1 memory · 1 command · 2 MCP · 1 agent</span>
+  <span class="dim">found  1 memory · 1 command · 2 MCP · 1 agent · 2 hooks</span>
 </span><span class="ln" id="l7">  <span class="dim">dry run only. --apply when the paths look right.</span>
 
 </span><span class="ln" id="l8"><span class="dim">$ </span><span id="cmd2"></span>
-</span><span class="ln" id="l9">  <span class="grn">✓ memory   ✓ AGENTS.md   ✓ commands   ✓ agents   ✓ MCP</span>
+</span><span class="ln" id="l9">  <span class="grn">✓ memory   ✓ commands   ✓ agents   ✓ MCP   ✓ hooks</span>
 </span><span class="ln" id="l10">  <span class="grn">moved.</span> <span class="dim">Memory stays live at the Claude path.</span>
 </span></div>
   </div>
 
   <div class="win" id="dsh">
-    <div class="dbar">OpenCode <span class="url">Claude memory + setup ready</span></div>
+    <div class="dbar">OpenCode <span class="url">Claude memory + hooks ready</span></div>
     <div id="chat">
       <div class="sysline">new session · ~/code/my-app</div>
     </div>
@@ -62,7 +62,7 @@
       <div class="mi" id="m0">MEMORY.md <span class="badge">live</span><span class="desc">Claude auto memory</span></div>
       <div class="mi" id="m1">/release <span class="badge">ready</span><span class="desc">Claude command</span></div>
       <div class="mi" id="m2">@reviewer <span class="badge">ready</span><span class="desc">Claude subagent</span></div>
-      <div class="mi" id="m3">github MCP <span class="badge">ready</span><span class="desc">env reference kept</span></div>
+      <div class="mi" id="m3">PreToolUse <span class="badge">live</span><span class="desc">Claude command guardrail</span></div>
     </div>
     <div id="composer"><span id="typed2"></span><span id="caret2"></span></div>
   </div>

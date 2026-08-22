@@ -24,6 +24,13 @@ fs.mkdirSync(path.join(home, '.claude', 'commands'), { recursive: true });
 fs.writeFileSync(path.join(home, '.claude', 'commands', 'ship.md'), '---\ndescription: Ship a release\n---\nShip $ARGUMENTS safely.\n');
 fs.mkdirSync(path.join(home, '.claude', 'agents'), { recursive: true });
 fs.writeFileSync(path.join(home, '.claude', 'agents', 'reviewer.md'), '---\nname: reviewer\ndescription: Review changes\ntools: Read, Grep\n---\nReview the diff.\n');
+fs.writeFileSync(path.join(home, '.claude', 'settings.json'), JSON.stringify({
+  hooks: {
+    PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: process.execPath, args: ['-e', 'process.exit(0)'] }] }],
+    PostToolUse: [{ matcher: 'Edit|Write', hooks: [{ type: 'command', command: process.execPath, args: ['-e', 'process.exit(0)'] }] }],
+    Stop: [{ hooks: [{ type: 'command', command: process.execPath, args: ['-e', 'process.exit(0)'] }] }],
+  },
+}));
 fs.writeFileSync(path.join(home, '.claude.json'), JSON.stringify({
   mcpServers: {
     github: { command: 'npx', args: ['-y', 'github-mcp'], env: { TOKEN: '${GITHUB_TOKEN}' } },
@@ -77,10 +84,13 @@ assert.match(dry, /global Claude rules.*reference 2 rule\(s\)/);
 assert.match(dry, /project Claude rules.*reference 1 rule\(s\)/);
 assert.match(dry, /rule api.*path-scoped Claude rule needs manual review/);
 assert.match(dry, /Claude auto memory.*live reference/);
-assert.match(dry, /4 rules · 1 memory/);
+assert.match(dry, /Claude command hooks.*live bridge 2 PreToolUse\/PostToolUse/);
+assert.match(dry, /Claude hook gaps.*1 unsupported handler.*Stop/);
+assert.match(dry, /4 rules · 1 memory · 2 hooks/);
 assert.ok(!fs.existsSync(path.join(globalOpenCode, 'AGENTS.md')), 'dry run must not write global instructions');
 assert.ok(!fs.existsSync(path.join(project, 'AGENTS.md')), 'dry run must not write project instructions');
 assert.ok(!fs.existsSync(path.join(project, '.opencode', 'commands', 'test.md')), 'dry run must not copy commands');
+assert.ok(!fs.existsSync(path.join(globalOpenCode, 'plugins', 'claude-hooks.js')), 'dry run must not write hook plugin');
 
 const applied = run(['--apply']);
 assert.match(applied, /moved\. Start OpenCode/);
@@ -93,6 +103,10 @@ assert.match(reviewer, /description: "Review changes"/);
 assert.match(reviewer, /mode: subagent/);
 assert.match(reviewer, /Review the diff/);
 assert.ok(!reviewer.includes('tools:'), 'Claude tool list is not guessed into OpenCode permissions');
+const hookPlugin = fs.readFileSync(path.join(globalOpenCode, 'plugins', 'claude-hooks.js'), 'utf8');
+assert.match(hookPlugin, /tool\.execute\.before/);
+assert.match(hookPlugin, /tool\.execute\.after/);
+assert.doesNotMatch(hookPlugin, new RegExp(process.execPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), 'hook commands remain in Claude settings');
 
 const globalText = fs.readFileSync(path.join(globalOpenCode, 'opencode.jsonc'), 'utf8');
 assert.match(globalText, /keep this comment/, 'JSONC comments preserved');
@@ -115,6 +129,7 @@ const manifest = JSON.parse(fs.readFileSync(path.join(globalOpenCode, 'dsh-movei
 assert.ok(manifest.at(-1).moved.some((item) => item.kind === 'config' && item.dest.endsWith('opencode.jsonc')));
 assert.ok(manifest.at(-1).moved.some((item) => item.kind === 'agent' && item.dest.endsWith('reviewer.md')));
 assert.ok(manifest.at(-1).moved.some((item) => item.kind === 'config' && item.label === 'project Claude rules'));
+assert.ok(manifest.at(-1).moved.some((item) => item.kind === 'plugin' && item.label === 'Claude command hooks'));
 
 const repeated = run();
 assert.match(repeated, /rule preferences.*already references it/);

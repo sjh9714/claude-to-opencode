@@ -10,7 +10,7 @@
 
 离开 Claude Code 时，不用重建已经积累的配置。
 
-一条命令先预演，再把自动记忆、指令、无路径条件的 rules、命令、agents 和 MCP 搬进 OpenCode。同一个 CLI 也能把 Claude Code、Codex 或 OpenCode 资产搬进 [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness)。
+一条命令先预演，再把自动记忆、指令、无路径条件的 rules、命令、agents、MCP 和命令型 hooks 搬进 OpenCode。同一个 CLI 也能把 Claude Code、Codex 或 OpenCode 资产搬进 [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness)。
 
 ![Claude Code 配置安全搬进 OpenCode](https://raw.githubusercontent.com/sjh9714/claude-to-opencode/main/docs/demo.gif)
 
@@ -39,6 +39,8 @@ npx dsh-movein --from claude --to opencode --apply
 - commands 原样复制，`$ARGUMENTS` 保持不变
 - Claude subagents 转成 OpenCode subagents，不猜测工具权限
 - 用户级和项目级 MCP 分别合并进对应的 OpenCode JSON 或 JSONC
+- Claude `PreToolUse` 和 `PostToolUse` 命令型 hooks 通过生成的 OpenCode plugin 运行，plugin 会在运行时读取原始 Claude 设置
+- 保留 matcher、退出码 2 阻止、结构化 deny、`updatedInput` 和工具执行后的反馈
 - `${VAR}` 转成 `{env:VAR}`，不会读取当前环境值
 - 已有目标和同名 MCP 跳过
 - 疑似明文密钥的 MCP 只报告，不复制
@@ -79,7 +81,7 @@ dsh plugin --profile web add dsh-movein
 
 | 路径 | 搬入内容 |
 | --- | --- |
-| Claude Code 到 OpenCode | 自动记忆、指令、无路径条件的 rules、commands、subagents、本地与远程 MCP。skills 原生读取，不重复复制 |
+| Claude Code 到 OpenCode | 自动记忆、指令、无路径条件的 rules、commands、subagents、本地与远程 MCP、`PreToolUse` 和 `PostToolUse` 命令型 hooks。skills 原生读取，不重复复制 |
 | Claude Code 到 DSH | 全局与项目指令、技能、斜杠命令、MCP、已支持 hooks、子代理和可映射权限规则 |
 | Codex 到 DSH | 全局 `AGENTS.md`、自定义 prompts 和 `config.toml` 中的 stdio MCP |
 | OpenCode 到 DSH | JSON 或 JSONC 中的指令、技能、命令、agents、本地与远程 MCP |
@@ -112,6 +114,7 @@ dsh plugin --profile web add dsh-movein
 - 已有目标跳过
 - 保留 OpenCode JSONC 注释和无关设置
 - 自动记忆从原本地文件引用，不复制
+- hook 命令保留在原始 Claude 设置中，OpenCode 运行时再读取
 - 合并前在原文件旁创建 OpenCode 配置备份
 - `~/.config/opencode/dsh-movein-manifest.json` 记录搬家结果
 - Windows 拒绝创建符号链接时会自动改为复制，并在报告中注明
@@ -145,6 +148,8 @@ npx dsh-movein --reverse --apply
 ## 不搬内容
 
 - sessions
+- `PreToolUse` 和 `PostToolUse` 以外的 Claude hook 事件
+- Claude prompt、agent、HTTP、async 和条件 `if` hooks
 - OpenCode permissions 和 plugins
 - Codex approval 与 sandbox policy
 - 多个 instruction 文件、glob 和远程 URL

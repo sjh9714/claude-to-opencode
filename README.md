@@ -11,7 +11,7 @@
 
 Leave Claude Code without rebuilding your setup.
 
-One command previews and moves auto memory, instructions, unconditional rules, commands, agents, and MCP servers into OpenCode. The same CLI can move Claude Code, Codex, or OpenCode assets into [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness).
+One command previews and moves auto memory, instructions, unconditional rules, commands, agents, MCP servers, and command hooks into OpenCode. The same CLI can move Claude Code, Codex, or OpenCode assets into [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness).
 
 ![Claude Code setup moving safely into OpenCode](https://raw.githubusercontent.com/sjh9714/claude-to-opencode/main/docs/demo.gif)
 
@@ -40,6 +40,8 @@ The first command is only a preview.
 - Commands copy into OpenCode command directories without changing `$ARGUMENTS`
 - Claude subagents become OpenCode subagents without guessing tool permissions
 - User and project MCP servers merge into the matching OpenCode JSON or JSONC config
+- Claude `PreToolUse` and `PostToolUse` command hooks run through a generated OpenCode plugin that reads the original settings at runtime
+- Hook matchers, exit code 2 blocking, structured deny results, `updatedInput`, and post-tool feedback are preserved
 - `${VAR}` becomes `{env:VAR}` and the current environment value is never read
 - Existing destinations and MCP names are skipped
 - A secret-looking plaintext MCP value is reported and not copied
@@ -80,7 +82,7 @@ Both tools are dry run by default and accept `apply=true` when you are ready.
 
 | Route | What moves |
 | --- | --- |
-| Claude Code to OpenCode | Auto memory, instructions, unconditional rules, commands, subagents, and local or remote MCP servers. Skills remain native and are not duplicated |
+| Claude Code to OpenCode | Auto memory, instructions, unconditional rules, commands, subagents, local or remote MCP servers, and `PreToolUse` or `PostToolUse` command hooks. Skills remain native and are not duplicated |
 | Claude Code to DSH | Global and project instructions, skills, slash commands, MCP servers, supported hooks, subagents, and mapped permission rules |
 | Codex to DSH | Global `AGENTS.md`, custom prompts, and stdio MCP servers from `config.toml` |
 | OpenCode to DSH | Instructions, skills, commands, agents, and local or remote MCP servers from V1 or V2 JSON and JSONC config |
@@ -115,6 +117,7 @@ If any JSONC file cannot be parsed, `--apply` is blocked before the first write.
 - Existing destinations are skipped
 - OpenCode JSONC comments and unrelated settings are preserved
 - Auto memory is referenced from its existing local file and is not copied
+- Hook commands stay in the original Claude settings and are read when OpenCode runs
 - OpenCode config files are backed up beside the original before a merge
 - `~/.config/opencode/dsh-movein-manifest.json` records OpenCode moves
 - On Windows, a permission-denied symlink falls back to a copy and is named in the report
@@ -155,6 +158,8 @@ Reverse moving currently targets Claude Code only.
 ## Not moved
 
 - Sessions
+- Claude hook events other than `PreToolUse` and `PostToolUse`
+- Claude prompt, agent, HTTP, async, and conditional `if` hooks
 - OpenCode permissions and plugins
 - Codex approval and sandbox policy
 - Instruction globs, remote instruction URLs, or multiple instruction files

@@ -31,7 +31,7 @@ Options:
   -h, --help    this help
 
 Claude Code can move to OpenCode or DSH. Codex and OpenCode can move to DSH.
-Memory, instructions, skills, commands, agents, MCP servers, and supported settings are handled without overwriting existing destinations.`);
+Memory, instructions, command hooks, skills, commands, agents, MCP servers, and supported settings are handled without overwriting existing destinations.`);
   process.exit(0);
 }
 
