@@ -11,7 +11,7 @@
 
 Switch to OpenCode without losing Claude Code memory or command guardrails.
 
-One command previews and moves auto memory, instructions, unconditional rules, commands, agents, MCP servers, and command hooks into OpenCode. The same CLI can move Claude Code, Codex, or OpenCode assets into [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness).
+OpenCode already reads `CLAUDE.md` and Claude skills. This CLI fills the remaining gaps with auto memory, unconditional rules, commands, agents, MCP servers, and command hooks. Every run starts with a dry preview.
 
 ![Claude Code setup moving safely into OpenCode](https://raw.githubusercontent.com/sjh9714/claude-to-opencode/main/docs/demo.gif)
 

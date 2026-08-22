@@ -10,7 +10,7 @@
 
 切换到 OpenCode 时，不丢失 Claude Code 的记忆和命令防线。
 
-一条命令先预演，再把自动记忆、指令、无路径条件的 rules、命令、agents、MCP 和命令型 hooks 搬进 OpenCode。同一个 CLI 也能把 Claude Code、Codex 或 OpenCode 资产搬进 [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness)。
+OpenCode 已经原生读取 `CLAUDE.md` 和 Claude skills。这个 CLI 补上其余缺口，包括自动记忆、无路径条件的 rules、命令、agents、MCP 和命令型 hooks。每次运行都先给出不写文件的预演。
 
 ![Claude Code 配置安全搬进 OpenCode](https://raw.githubusercontent.com/sjh9714/claude-to-opencode/main/docs/demo.gif)
 
