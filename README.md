@@ -11,7 +11,7 @@
 
 Leave Claude Code without rebuilding your setup.
 
-One command previews and moves instructions, commands, agents, and MCP servers into OpenCode. The same CLI can move Claude Code, Codex, or OpenCode assets into [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness).
+One command previews and moves instructions, unconditional rules, commands, agents, and MCP servers into OpenCode. The same CLI can move Claude Code, Codex, or OpenCode assets into [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness).
 
 ![Claude Code setup moving safely into OpenCode](https://raw.githubusercontent.com/sjh9714/dsh-movein/main/docs/demo.gif)
 
@@ -27,6 +27,7 @@ npx dsh-movein --from claude --to opencode --apply
 The first command is only a preview.
 
 - Global and project `CLAUDE.md` files link to the matching OpenCode `AGENTS.md` when the destination is free
+- Unconditional `.claude/rules` files are referenced from OpenCode config. Path-scoped rules stay manual instead of being applied everywhere
 - Claude skills stay where they are because OpenCode reads `.claude/skills` directly
 - Commands copy into OpenCode command directories without changing `$ARGUMENTS`
 - Claude subagents become OpenCode subagents without guessing tool permissions
@@ -71,7 +72,7 @@ Both tools are dry run by default and accept `apply=true` when you are ready.
 
 | Route | What moves |
 | --- | --- |
-| Claude Code to OpenCode | Instructions, commands, subagents, and local or remote MCP servers. Skills remain native and are not duplicated |
+| Claude Code to OpenCode | Instructions, unconditional rules, commands, subagents, and local or remote MCP servers. Skills remain native and are not duplicated |
 | Claude Code to DSH | Global and project instructions, skills, slash commands, MCP servers, supported hooks, subagents, and mapped permission rules |
 | Codex to DSH | Global `AGENTS.md`, custom prompts, and stdio MCP servers from `config.toml` |
 | OpenCode to DSH | Instructions, skills, commands, agents, and local or remote MCP servers from V1 or V2 JSON and JSONC config |
