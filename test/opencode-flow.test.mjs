@@ -67,8 +67,9 @@ write(path.join(mcpPkg, 'package.json'), JSON.stringify({ name: '@deepseek-ai/ds
 
 const help = run(['--help']);
 assert.strictEqual(help.status, 0);
-assert.match(help.stdout, /move agent setups into DeepSeek Harness/);
+assert.match(help.stdout, /move coding-agent setups safely/);
 assert.match(help.stdout, /--from <origin>.*claude, codex, opencode/);
+assert.match(help.stdout, /--to <target>.*dsh, opencode/);
 
 const unknown = run([project, '--from', 'other']);
 assert.strictEqual(unknown.status, 1);

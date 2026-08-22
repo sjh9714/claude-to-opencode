@@ -8,10 +8,11 @@ import { scanReverse, planReverseActions, renderReverseReport } from '../lib/rev
 import { runDoctor, renderDoctor } from '../lib/doctor.mjs';
 import { scanCodex } from '../lib/codex.mjs';
 import { scanOpenCode } from '../lib/opencode.mjs';
+import { planOpenCodeActions, applyOpenCodeActions, renderOpenCodeReport } from '../lib/to-opencode.mjs';
 
 const args = process.argv.slice(2);
 if (args.includes('--help') || args.includes('-h')) {
-  console.log(`dsh-movein - move agent setups into DeepSeek Harness (DSH)
+  console.log(`dsh-movein - move coding-agent setups safely
 
 Usage: npx dsh-movein [projectDir] [options]
 
@@ -22,14 +23,15 @@ Commands:
 
 Options:
   --apply       actually move (default is a dry run)
-  --copy        copy skills instead of symlinking
+  --copy        copy linked files instead of symlinking
   --from <origin>  claude, codex, opencode
+  --to <target>    dsh, opencode (default: dsh)
   --reverse     bring DSH-born skills and instructions back to Claude Code (dual boot)
   --emit-rules  print your deny/ask rules in dsh-permission-rules YAML and exit
   -h, --help    this help
 
-Moves instructions, skills, commands, agents, MCP servers, and supported origin-specific settings.
-Project instruction files already read by DSH need no move.`);
+Claude Code can move to OpenCode or DSH. Codex and OpenCode can move to DSH.
+Instructions, skills, commands, agents, MCP servers, and supported settings are handled without overwriting existing destinations.`);
   process.exit(0);
 }
 
@@ -43,6 +45,16 @@ if (fromIdx !== -1) {
   if (args[fromIdx] === '--from') args.splice(fromIdx, 2); else args.splice(fromIdx, 1);
   if (!['claude', 'codex', 'opencode'].includes(from)) {
     console.error(`dsh-movein: unknown origin "${from}", supported: claude, codex, opencode`);
+    process.exit(1);
+  }
+}
+let to = 'dsh';
+const toIdx = args.findIndex((a) => a === '--to' || a.startsWith('--to='));
+if (toIdx !== -1) {
+  to = args[toIdx].includes('=') ? args[toIdx].split('=')[1] : args[toIdx + 1];
+  if (args[toIdx] === '--to') args.splice(toIdx, 2); else args.splice(toIdx, 1);
+  if (!['dsh', 'opencode'].includes(to)) {
+    console.error(`dsh-movein: unknown target "${to}", supported: dsh, opencode`);
     process.exit(1);
   }
 }
@@ -63,6 +75,22 @@ if (command === 'restore') {
 if (args.includes('--emit-rules')) {
   process.stdout.write(emitRules(scan({ project }).permissions));
   process.exit(0);
+}
+
+if (to === 'opencode') {
+  if (from !== 'claude') {
+    console.error(`dsh-movein: OpenCode target currently supports the Claude Code origin only`);
+    process.exit(1);
+  }
+  if (reverse || command) {
+    console.error(`dsh-movein: --to opencode does not support ${reverse ? '--reverse' : command}`);
+    process.exit(1);
+  }
+  const result = scan({ project });
+  const actions = planOpenCodeActions(result, { copy });
+  if (apply) applyOpenCodeActions(actions, result);
+  console.log(renderOpenCodeReport(result, actions, { apply }));
+  process.exit(actions.some((action) => action.status === 'error') ? 1 : 0);
 }
 
 if (reverse) {
