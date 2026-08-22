@@ -3,7 +3,8 @@
 [English](./README.md)
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/claude-to-opencode"><img alt="npm" src="https://img.shields.io/npm/v/claude-to-opencode?style=flat-square&color=4b6fff"></a>
+  <a href="https://www.npmjs.com/package/opencode-claude-code-hooks"><img alt="OpenCode plugin" src="https://img.shields.io/npm/v/opencode-claude-code-hooks?label=OpenCode%20plugin&style=flat-square&color=4b6fff"></a>
+  <a href="https://www.npmjs.com/package/claude-to-opencode"><img alt="migration CLI" src="https://img.shields.io/npm/v/claude-to-opencode?label=migration%20CLI&style=flat-square&color=8250df"></a>
   <a href="https://github.com/sjh9714/claude-to-opencode/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/sjh9714/claude-to-opencode/actions/workflows/ci.yml/badge.svg"></a>
   <a href="LICENSE"><img alt="MIT" src="https://img.shields.io/badge/license-MIT-2EA44F?style=flat-square"></a>
 </p>
