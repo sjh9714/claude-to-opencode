@@ -36,32 +36,32 @@
       <div class="ti">zsh  moving day</div>
     </div>
     <div id="tbody"><span class="dim">$ </span><span id="cmd1"></span><span id="caret1" style="display:inline-block;width:11px;height:24px;background:#d7dce6;vertical-align:-3px"></span>
-<span class="ln" id="l0"><span class="hdr">📦 Claude Code -> OpenCode safe move</span>
-</span><span class="ln" id="l1">  <span class="arw">→</span> CLAUDE.md  link -> OpenCode AGENTS.md
-</span><span class="ln" id="l2">  <span class="grn">✓</span> skill terminal-design  OpenCode reads it directly
+<span class="ln" id="l0"><span class="hdr">Claude Code -> OpenCode safe move</span>
+</span><span class="ln" id="l1">  <span class="arw">→</span> auto memory  live reference -> opencode.json
+</span><span class="ln" id="l2">  <span class="arw">→</span> CLAUDE.md  link -> OpenCode AGENTS.md
 </span><span class="ln" id="l3">  <span class="arw">→</span> agent reviewer  write -> OpenCode agents/
 </span><span class="ln" id="l4">  <span class="arw">→</span> command /release  write -> OpenCode commands/
 </span><span class="ln" id="l5">  <span class="arw">→</span> 2 MCP servers  merge -> opencode.jsonc
 </span><span class="ln" id="l6">
-  <span class="dim">found  3 skills · 1 command · 2 MCP · 1 agent</span>
+  <span class="dim">found  1 memory · 1 command · 2 MCP · 1 agent</span>
 </span><span class="ln" id="l7">  <span class="dim">dry run only. --apply when the paths look right.</span>
 
 </span><span class="ln" id="l8"><span class="dim">$ </span><span id="cmd2"></span>
-</span><span class="ln" id="l9">  <span class="grn">✓ AGENTS.md   ✓ commands   ✓ agents   ✓ MCP</span>
-</span><span class="ln" id="l10">  <span class="grn">moved.</span> <span class="dim">OpenCode loaded every generated asset.</span>
+</span><span class="ln" id="l9">  <span class="grn">✓ memory   ✓ AGENTS.md   ✓ commands   ✓ agents   ✓ MCP</span>
+</span><span class="ln" id="l10">  <span class="grn">moved.</span> <span class="dim">Memory stays live at the Claude path.</span>
 </span></div>
   </div>
 
   <div class="win" id="dsh">
-    <div class="dbar">OpenCode <span class="url">Claude setup ready</span></div>
+    <div class="dbar">OpenCode <span class="url">Claude memory + setup ready</span></div>
     <div id="chat">
       <div class="sysline">new session · ~/code/my-app</div>
     </div>
     <div id="menu">
-      <div class="mhead">COMMANDS + AGENTS · moved from Claude Code</div>
-      <div class="mi" id="m0">/release <span class="badge">ready</span><span class="desc">Claude command</span></div>
-      <div class="mi" id="m1">@reviewer <span class="badge">ready</span><span class="desc">Claude subagent</span></div>
-      <div class="mi" id="m2">terminal-design <span class="badge">native</span><span class="desc">Claude skill</span></div>
+      <div class="mhead">CLAUDE SETUP · LIVE IN OPENCODE</div>
+      <div class="mi" id="m0">MEMORY.md <span class="badge">live</span><span class="desc">Claude auto memory</span></div>
+      <div class="mi" id="m1">/release <span class="badge">ready</span><span class="desc">Claude command</span></div>
+      <div class="mi" id="m2">@reviewer <span class="badge">ready</span><span class="desc">Claude subagent</span></div>
       <div class="mi" id="m3">github MCP <span class="badge">ready</span><span class="desc">env reference kept</span></div>
     </div>
     <div id="composer"><span id="typed2"></span><span id="caret2"></span></div>
@@ -69,7 +69,7 @@
 
 </div></div>
 <script>
-const CMD1='npx dsh-movein --to opencode', CMD2='npx dsh-movein --to opencode --apply';
+const CMD1='npx claude-to-opencode', CMD2='npx claude-to-opencode --apply';
 const T={
   type1:[300,1100], enter1:[1100,1250],
   scan:[1250,3300],        // header + 6 report lines staggered
@@ -104,9 +104,9 @@ const CAM=[
   [T.type2[0],      500,470,1.32],
   [T.type2[0]+400,  500,640,1.32],
   [T.panDSH[0],     500,640,1.32],
-  [T.panDSH[1],    1425,700,1.42],
-  [T.exit[0],      1425,700,1.42],
-  [DURATION,       1425,700,1.36],
+  [T.panDSH[1],    1650,700,1.42],
+  [T.exit[0],      1650,700,1.42],
+  [DURATION,       1650,700,1.36],
 ];
 
 // dry-run report lines l0..l7 stagger inside T.scan, l8..l10 in apply phase
