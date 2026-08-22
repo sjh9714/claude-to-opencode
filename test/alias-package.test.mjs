@@ -28,6 +28,16 @@ assert.match(dry.stdout, /Claude auto memory/);
 assert.match(dry.stdout, /dry run only/);
 assert.ok(!fs.existsSync(path.join(project, 'opencode.json')), 'alias stays dry by default');
 
+fs.mkdirSync(path.join(home, '.claude'), { recursive: true });
+fs.writeFileSync(path.join(home, '.claude', 'settings.json'), JSON.stringify({
+  hooks: { PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: 'check.sh' }] }] },
+}));
+const hooksOnly = spawnSync(process.execPath, [cli, project, '--hooks-only'], { env, encoding: 'utf8' });
+assert.strictEqual(hooksOnly.status, 0);
+assert.match(hooksOnly.stdout, /Claude hooks -> OpenCode guardrails/);
+assert.match(hooksOnly.stdout, /found 1 supported command hooks/);
+assert.doesNotMatch(hooksOnly.stdout, /project Claude rules/);
+
 const help = spawnSync(process.execPath, [cli, '--help'], { env, encoding: 'utf8' });
 assert.strictEqual(help.status, 0);
 assert.match(help.stdout, /npx claude-to-opencode/);

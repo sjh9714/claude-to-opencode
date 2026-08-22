@@ -8,7 +8,7 @@
   <a href="LICENSE"><img alt="MIT" src="https://img.shields.io/badge/license-MIT-2EA44F?style=flat-square"></a>
 </p>
 
-离开 Claude Code 时，不用重建已经积累的配置。
+切换到 OpenCode 时，不丢失 Claude Code 的记忆和命令防线。
 
 一条命令先预演，再把自动记忆、指令、无路径条件的 rules、命令、agents、MCP 和命令型 hooks 搬进 OpenCode。同一个 CLI 也能把 Claude Code、Codex 或 OpenCode 资产搬进 [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness)。
 
@@ -31,6 +31,15 @@ npx dsh-movein --from claude --to opencode --apply
 ```
 
 第一条命令只预演，不写文件。
+
+已经配好 OpenCode，只需要保留 Claude 命令防线？
+
+```sh
+npx claude-to-opencode --hooks-only
+npx claude-to-opencode --hooks-only --apply
+```
+
+这条路径只安装命令型 hook 桥。原有的 `Bash` 阻止规则、密钥检查和编辑后 lint 继续从 Claude 原始设置运行。OpenCode 的 `bash` 等工具名会映射成 Claude matcher 使用的 `Bash` 等名称。
 
 - 全局和项目 `CLAUDE.md` 在目标空闲时连接到对应的 OpenCode `AGENTS.md`
 - 当前项目的 Claude 自动记忆保留在原处，由项目 OpenCode 配置直接引用，后续更新仍然可见

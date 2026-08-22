@@ -24,6 +24,7 @@ Commands:
 Options:
   --apply       actually move (default is a dry run)
   --copy        copy linked files instead of symlinking
+  --hooks-only  install only the Claude command-hook bridge for OpenCode
   --from <origin>  claude, codex, opencode
   --to <target>    dsh, opencode (default: dsh)
   --reverse     bring DSH-born skills and instructions back to Claude Code (dual boot)
@@ -37,6 +38,7 @@ Memory, instructions, command hooks, skills, commands, agents, MCP servers, and 
 
 const apply = args.includes('--apply');
 const copy = args.includes('--copy');
+const hooksOnly = args.includes('--hooks-only');
 const reverse = args.includes('--reverse');
 let from = 'claude';
 const fromIdx = args.findIndex((a) => a === '--from' || a.startsWith('--from='));
@@ -87,9 +89,9 @@ if (to === 'opencode') {
     process.exit(1);
   }
   const result = scan({ project });
-  const actions = planOpenCodeActions(result, { copy });
+  const actions = planOpenCodeActions(result, { copy, hooksOnly });
   if (apply) applyOpenCodeActions(actions, result);
-  console.log(renderOpenCodeReport(result, actions, { apply }));
+  console.log(renderOpenCodeReport(result, actions, { apply, hooksOnly }));
   process.exit(actions.some((action) => action.status === 'error') ? 1 : 0);
 }
 
