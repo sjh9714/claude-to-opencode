@@ -8,48 +8,46 @@
   <a href="LICENSE"><img alt="MIT" src="https://img.shields.io/badge/license-MIT-2EA44F?style=flat-square"></a>
 </p>
 
-切换到 OpenCode 时，不丢失 Claude Code 的记忆和命令防线。
+切换到 OpenCode 时，继续使用 Claude Code 的命令防线。
 
-OpenCode 已经原生读取 `CLAUDE.md` 和 Claude skills。这个 CLI 补上其余缺口，包括自动记忆、无路径条件的 rules、命令、agents、MCP 和命令型 hooks。每次运行都先给出不写文件的预演。
-
-![Claude Code 配置安全搬进 OpenCode](https://raw.githubusercontent.com/sjh9714/claude-to-opencode/main/docs/demo.gif)
-
-动画复现真实 CLI 流程。生成结果还通过 OpenCode `1.18.21` 的 `debug config`、`debug skill` 和 `debug agent` 实际加载验证。
-
-## Claude Code 搬到 OpenCode
-
-```sh
-npx claude-to-opencode
-npx claude-to-opencode --apply
-```
-
-完整的多来源 CLI 运行同一条迁移路径。
-
-```sh
-npx dsh-movein --from claude --to opencode
-npx dsh-movein --from claude --to opencode --apply
-```
-
-第一条命令只预演，不写文件。
-
-## 只保留命令防线
-
-已经配好 OpenCode，只需要保留 Claude 命令防线？
-
-```sh
-npx claude-to-opencode --hooks-only
-npx claude-to-opencode --hooks-only --apply
-```
-
-这条路径只安装命令型 hook 桥。原有的 `Bash` 阻止规则、密钥检查和编辑后 lint 继续从 Claude 原始设置运行。OpenCode 的 `bash` 等工具名会映射成 Claude matcher 使用的 `Bash` 等名称。
-
-也可以把同一个桥直接作为 OpenCode package 使用。
+OpenCode 已经原生读取 `CLAUDE.md` 和 Claude skills。缺少的是能真正阻止工具调用的确定性命令型 hooks。把原生桥接 package 加进 OpenCode 配置即可。
 
 ```json
 {
   "plugin": ["opencode-claude-code-hooks"]
 }
 ```
+
+原有的 `Bash` 阻止规则、密钥检查和编辑后 lint 继续从 Claude 原始设置运行。每次工具调用都会重新读取设置，修改 Claude hook 后不需要重装 plugin。
+
+## 先检查 hook 桥
+
+修改 OpenCode 配置前，可以先查看支持范围。
+
+```sh
+npx claude-to-opencode --hooks-only
+npx claude-to-opencode --hooks-only --apply
+```
+
+第一条命令只预演。第二条只安装同一个本地桥，不修改记忆、rules、commands、agents 或 MCP 配置。OpenCode 的 `bash` 等工具名会映射成 Claude matcher 使用的 `Bash` 等名称。
+
+## 搬移其余 Claude Code 配置
+
+```sh
+npx claude-to-opencode
+npx claude-to-opencode --apply
+```
+
+完整路径会先预演，再搬移其余兼容的 Claude Code 配置。多来源 CLI 运行同一条路径。
+
+```sh
+npx dsh-movein --from claude --to opencode
+npx dsh-movein --from claude --to opencode --apply
+```
+
+![Claude Code 配置安全搬进 OpenCode](https://raw.githubusercontent.com/sjh9714/claude-to-opencode/main/docs/demo.gif)
+
+动画复现真实 CLI 流程。生成结果还通过 OpenCode `1.18.21` 的 `debug config`、`debug skill` 和 `debug agent` 实际加载验证。
 
 - 全局和项目 `CLAUDE.md` 在目标空闲时连接到对应的 OpenCode `AGENTS.md`
 - 当前项目的 Claude 自动记忆保留在原处，由项目 OpenCode 配置直接引用，后续更新仍然可见
