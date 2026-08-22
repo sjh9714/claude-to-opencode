@@ -1,6 +1,6 @@
 {
   "name": "claude-to-opencode",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Keep Claude Code memory and PreToolUse or PostToolUse command guardrails when moving to OpenCode. Dry run first.",
   "license": "MIT",
   "type": "module",
@@ -14,15 +14,15 @@
     "node": ">=20"
   },
   "dependencies": {
-    "dsh-movein": ">=0.11.0 <0.12.0"
+    "dsh-movein": ">=0.11.1 <0.12.0"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sjh9714/claude-to-opencode.git",
+    "url": "git+https://github.com/sjh9714/dsh-movein.git",
     "directory": "packages/claude-to-opencode"
   },
-  "homepage": "https://github.com/sjh9714/claude-to-opencode#claude-code-to-opencode",
-  "bugs": "https://github.com/sjh9714/claude-to-opencode/issues",
+  "homepage": "https://github.com/sjh9714/dsh-movein#claude-code-to-opencode",
+  "bugs": "https://github.com/sjh9714/dsh-movein/issues",
   "keywords": [
     "claude-code",
     "opencode",
