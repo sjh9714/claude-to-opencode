@@ -1,6 +1,6 @@
 {
   "name": "dsh-movein",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "description": "Safely move Claude Code memory, hooks, rules, commands, agents, skills, and MCP config into OpenCode or DeepSeek Harness.",
   "license": "MIT",
   "type": "module",
