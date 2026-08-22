@@ -9,7 +9,7 @@
   <a href="https://www.npmjs.com/package/claude-to-opencode"><img alt="downloads" src="https://img.shields.io/npm/dm/claude-to-opencode?style=flat-square&color=8250df"></a>
 </p>
 
-Leave Claude Code without rebuilding your setup.
+Switch to OpenCode without losing Claude Code memory or command guardrails.
 
 One command previews and moves auto memory, instructions, unconditional rules, commands, agents, MCP servers, and command hooks into OpenCode. The same CLI can move Claude Code, Codex, or OpenCode assets into [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness).
 
@@ -32,6 +32,15 @@ npx dsh-movein --from claude --to opencode --apply
 ```
 
 The first command is only a preview.
+
+Already have OpenCode configured and only need your Claude guardrails?
+
+```sh
+npx claude-to-opencode --hooks-only
+npx claude-to-opencode --hooks-only --apply
+```
+
+This installs only the command-hook bridge. Existing `Bash` blockers, secret checks, and edit-time linters keep running from the original Claude settings. OpenCode tool names such as `bash` are mapped to Claude matcher names such as `Bash`.
 
 - Global and project `CLAUDE.md` files link to the matching OpenCode `AGENTS.md` when the destination is free
 - The current project's Claude auto memory stays in place and is referenced from the project OpenCode config, so later memory updates remain visible

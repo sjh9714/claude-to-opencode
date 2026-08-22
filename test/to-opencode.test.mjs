@@ -92,6 +92,22 @@ assert.ok(!fs.existsSync(path.join(project, 'AGENTS.md')), 'dry run must not wri
 assert.ok(!fs.existsSync(path.join(project, '.opencode', 'commands', 'test.md')), 'dry run must not copy commands');
 assert.ok(!fs.existsSync(path.join(globalOpenCode, 'plugins', 'claude-hooks.js')), 'dry run must not write hook plugin');
 
+const hooksOnly = run(['--hooks-only']);
+assert.match(hooksOnly, /Claude hooks -> OpenCode guardrails/);
+assert.match(hooksOnly, /Claude command hooks.*live bridge 2 PreToolUse\/PostToolUse/);
+assert.match(hooksOnly, /Claude hook gaps.*Stop/);
+assert.match(hooksOnly, /found 2 supported command hooks/);
+assert.doesNotMatch(hooksOnly, /Claude auto memory/);
+assert.doesNotMatch(hooksOnly, /MCP github/);
+assert.doesNotMatch(hooksOnly, /command \/test/);
+
+const hooksApplied = run(['--hooks-only', '--apply']);
+assert.match(hooksApplied, /Claude hooks -> OpenCode guardrails/);
+assert.ok(fs.existsSync(path.join(globalOpenCode, 'plugins', 'claude-hooks.js')), 'hooks-only apply writes the hook plugin');
+assert.ok(!fs.existsSync(path.join(globalOpenCode, 'AGENTS.md')), 'hooks-only apply does not write global instructions');
+assert.ok(!fs.existsSync(path.join(project, 'AGENTS.md')), 'hooks-only apply does not write project instructions');
+fs.rmSync(path.join(globalOpenCode, 'plugins', 'claude-hooks.js'));
+
 const applied = run(['--apply']);
 assert.match(applied, /moved\. Start OpenCode/);
 assert.strictEqual(fs.readFileSync(path.join(globalOpenCode, 'AGENTS.md'), 'utf8'), '# Global Claude instructions\n', 'global instructions available');
@@ -159,6 +175,18 @@ const blocked = spawnSync(process.execPath, [cli, badProject, '--to', 'opencode'
 assert.strictEqual(blocked.status, 1);
 assert.match(blocked.stdout, /invalid OpenCode config blocked every write/);
 assert.ok(!fs.existsSync(path.join(badHome, '.config', 'opencode', 'commands', 'blocked.md')), 'parse error blocks command writes too');
+
+fs.writeFileSync(path.join(badHome, '.claude', 'settings.json'), JSON.stringify({
+  hooks: { PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: 'check.sh' }] }] },
+}));
+const hookThroughBadConfig = spawnSync(process.execPath, [cli, badProject, '--to', 'opencode', '--hooks-only', '--apply'], {
+  env: { ...process.env, HOME: badHome, XDG_CONFIG_HOME: path.join(badHome, '.config') },
+  encoding: 'utf8',
+});
+assert.strictEqual(hookThroughBadConfig.status, 0);
+assert.match(hookThroughBadConfig.stdout, /found 1 supported command hooks/);
+assert.ok(fs.existsSync(path.join(badHome, '.config', 'opencode', 'plugins', 'claude-hooks.js')), 'hooks-only does not parse untouched OpenCode config');
+assert.strictEqual(fs.readFileSync(path.join(badProject, 'opencode.jsonc'), 'utf8'), '{ invalid jsonc');
 
 const wrongTypeHome = path.join(tmp, 'wrong-type-home');
 const wrongTypeProject = path.join(tmp, 'wrong-type-project');

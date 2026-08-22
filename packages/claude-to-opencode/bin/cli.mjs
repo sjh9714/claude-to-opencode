@@ -13,22 +13,23 @@ if (help) {
 
 Safely preview and move Claude Code memory, setup, and command hooks into OpenCode.
 
-Usage: npx claude-to-opencode [projectDir] [--apply] [--copy]
+Usage: npx claude-to-opencode [projectDir] [--apply] [--copy] [--hooks-only]
 
 Options:
   --apply   write the reviewed changes
   --copy    copy instruction files instead of linking them
+  --hooks-only  install only the Claude command-hook bridge
   -h, --help
 
 The default run is a dry run. The implementation is maintained in dsh-movein.`);
   process.exit(0);
 }
 
-const allowed = new Set(['--apply', '--copy']);
+const allowed = new Set(['--apply', '--copy', '--hooks-only']);
 const unknown = args.find((arg) => arg.startsWith('-') && !allowed.has(arg));
 const positionals = args.filter((arg) => !arg.startsWith('-'));
 if (unknown || positionals.length > 1) {
-  console.error('claude-to-opencode: usage is npx claude-to-opencode [projectDir] [--apply] [--copy]');
+  console.error('claude-to-opencode: usage is npx claude-to-opencode [projectDir] [--apply] [--copy] [--hooks-only]');
   process.exit(1);
 }
 
