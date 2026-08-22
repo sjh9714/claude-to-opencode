@@ -11,13 +11,18 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-to-opencode-'));
 const home = path.join(tmp, 'home');
 const project = path.join(tmp, 'project');
 fs.mkdirSync(path.join(project, '.claude', 'rules'), { recursive: true });
+fs.mkdirSync(path.join(project, '.git'), { recursive: true });
 fs.writeFileSync(path.join(project, '.claude', 'rules', 'testing.md'), '# Testing rule\n');
+const memory = path.join(home, '.claude', 'projects', project.replace(/[^A-Za-z0-9]/g, '-'), 'memory', 'MEMORY.md');
+fs.mkdirSync(path.dirname(memory), { recursive: true });
+fs.writeFileSync(memory, '# Claude auto memory\n');
 
 const env = { ...process.env, HOME: home, XDG_CONFIG_HOME: path.join(home, '.config') };
 const dry = spawnSync(process.execPath, [cli, project], { env, encoding: 'utf8' });
 assert.strictEqual(dry.status, 0);
 assert.match(dry.stdout, /Claude Code -> OpenCode safe move/);
 assert.match(dry.stdout, /project Claude rules/);
+assert.match(dry.stdout, /Claude auto memory/);
 assert.match(dry.stdout, /dry run only/);
 assert.ok(!fs.existsSync(path.join(project, 'opencode.json')), 'alias stays dry by default');
 

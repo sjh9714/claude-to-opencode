@@ -1,7 +1,7 @@
 {
   "name": "dsh-movein",
-  "version": "0.8.1",
-  "description": "Safely move skills, commands, agents, and MCP config between Claude Code, OpenCode, Codex, and DeepSeek Harness.",
+  "version": "0.9.0",
+  "description": "Safely move Claude Code memory, rules, commands, agents, skills, and MCP config into OpenCode or DeepSeek Harness.",
   "license": "MIT",
   "type": "module",
   "main": "shell/index.mjs",
@@ -37,6 +37,7 @@
     "codex",
     "opencode",
     "claude-to-opencode",
+    "claude-code-memory",
     "agent-migration",
     "config-portability",
     "jsonc",
