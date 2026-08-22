@@ -9,48 +9,46 @@
   <a href="https://www.npmjs.com/package/claude-to-opencode"><img alt="downloads" src="https://img.shields.io/npm/dm/claude-to-opencode?style=flat-square&color=8250df"></a>
 </p>
 
-Switch to OpenCode without losing Claude Code memory or command guardrails.
+Keep your Claude Code command guardrails when you switch to OpenCode.
 
-OpenCode already reads `CLAUDE.md` and Claude skills. This CLI fills the remaining gaps with auto memory, unconditional rules, commands, agents, MCP servers, and command hooks. Every run starts with a dry preview.
-
-![Claude Code setup moving safely into OpenCode](https://raw.githubusercontent.com/sjh9714/claude-to-opencode/main/docs/demo.gif)
-
-The animation recreates the real CLI flow. The generated files were also loaded with OpenCode `1.18.21` through `debug config`, `debug skill`, and `debug agent`.
-
-## Claude Code to OpenCode
-
-```sh
-npx claude-to-opencode
-npx claude-to-opencode --apply
-```
-
-The full multi-origin CLI runs the same route.
-
-```sh
-npx dsh-movein --from claude --to opencode
-npx dsh-movein --from claude --to opencode --apply
-```
-
-The first command is only a preview.
-
-## Keep only the command guardrails
-
-Already have OpenCode configured and only need your Claude guardrails?
-
-```sh
-npx claude-to-opencode --hooks-only
-npx claude-to-opencode --hooks-only --apply
-```
-
-This installs only the command-hook bridge. Existing `Bash` blockers, secret checks, and edit-time linters keep running from the original Claude settings. OpenCode tool names such as `bash` are mapped to Claude matcher names such as `Bash`.
-
-You can also use the same bridge as a native OpenCode package.
+OpenCode already reads `CLAUDE.md` and Claude skills. The missing piece is deterministic command hooks that can actually block a tool call. Install the native bridge in your OpenCode config.
 
 ```json
 {
   "plugin": ["opencode-claude-code-hooks"]
 }
 ```
+
+Existing `Bash` blockers, secret checks, and edit-time linters keep running from the original Claude settings. Settings are read at every tool call, so changing a Claude hook does not require reinstalling the plugin.
+
+## Preview the hook bridge
+
+Check what the bridge supports before changing your OpenCode config.
+
+```sh
+npx claude-to-opencode --hooks-only
+npx claude-to-opencode --hooks-only --apply
+```
+
+The first command is only a preview. The second installs the same bridge locally without touching memory, rules, commands, agents, or MCP config. OpenCode tool names such as `bash` are mapped to Claude matcher names such as `Bash`.
+
+## Move the remaining Claude Code setup
+
+```sh
+npx claude-to-opencode
+npx claude-to-opencode --apply
+```
+
+The full route previews and moves the remaining compatible Claude Code setup. The multi-origin CLI runs the same route.
+
+```sh
+npx dsh-movein --from claude --to opencode
+npx dsh-movein --from claude --to opencode --apply
+```
+
+![Claude Code setup moving safely into OpenCode](https://raw.githubusercontent.com/sjh9714/claude-to-opencode/main/docs/demo.gif)
+
+The animation recreates the real CLI flow. The generated files were also loaded with OpenCode `1.18.21` through `debug config`, `debug skill`, and `debug agent`.
 
 - Global and project `CLAUDE.md` files link to the matching OpenCode `AGENTS.md` when the destination is free
 - The current project's Claude auto memory stays in place and is referenced from the project OpenCode config, so later memory updates remain visible
