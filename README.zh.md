@@ -32,6 +32,8 @@ npx dsh-movein --from claude --to opencode --apply
 
 第一条命令只预演，不写文件。
 
+## 只保留命令防线
+
 已经配好 OpenCode，只需要保留 Claude 命令防线？
 
 ```sh
@@ -40,6 +42,14 @@ npx claude-to-opencode --hooks-only --apply
 ```
 
 这条路径只安装命令型 hook 桥。原有的 `Bash` 阻止规则、密钥检查和编辑后 lint 继续从 Claude 原始设置运行。OpenCode 的 `bash` 等工具名会映射成 Claude matcher 使用的 `Bash` 等名称。
+
+也可以把同一个桥直接作为 OpenCode package 使用。
+
+```json
+{
+  "plugin": ["opencode-claude-code-hooks"]
+}
+```
 
 - 全局和项目 `CLAUDE.md` 在目标空闲时连接到对应的 OpenCode `AGENTS.md`
 - 当前项目的 Claude 自动记忆保留在原处，由项目 OpenCode 配置直接引用，后续更新仍然可见

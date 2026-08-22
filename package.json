@@ -27,7 +27,8 @@
     "jsonc-parser": "^3.3.1"
   },
   "scripts": {
-    "test": "node test/test.mjs && node test/opencode.test.mjs && node test/opencode-flow.test.mjs && node test/to-opencode.test.mjs && node test/opencode-hooks.test.mjs && node test/alias-package.test.mjs"
+    "test": "node test/test.mjs && node test/opencode.test.mjs && node test/opencode-flow.test.mjs && node test/to-opencode.test.mjs && node test/opencode-hooks.test.mjs && node test/hook-package.test.mjs && node test/alias-package.test.mjs",
+    "build:hook-package": "node scripts/sync-opencode-hook-package.mjs"
   },
   "keywords": [
     "dsh",

@@ -33,6 +33,8 @@ npx dsh-movein --from claude --to opencode --apply
 
 The first command is only a preview.
 
+## Keep only the command guardrails
+
 Already have OpenCode configured and only need your Claude guardrails?
 
 ```sh
@@ -41,6 +43,14 @@ npx claude-to-opencode --hooks-only --apply
 ```
 
 This installs only the command-hook bridge. Existing `Bash` blockers, secret checks, and edit-time linters keep running from the original Claude settings. OpenCode tool names such as `bash` are mapped to Claude matcher names such as `Bash`.
+
+You can also use the same bridge as a native OpenCode package.
+
+```json
+{
+  "plugin": ["opencode-claude-code-hooks"]
+}
+```
 
 - Global and project `CLAUDE.md` files link to the matching OpenCode `AGENTS.md` when the destination is free
 - The current project's Claude auto memory stays in place and is referenced from the project OpenCode config, so later memory updates remain visible
