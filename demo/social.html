@@ -6,7 +6,7 @@
   #safe{position:absolute;left:86px;top:0;width:1108px;height:640px;display:flex;flex-direction:column;justify-content:center}
   .from{font:600 34px ui-monospace,Menlo,monospace;color:#6b7383;letter-spacing:.5px}
   .name{font:800 76px ui-monospace,Menlo,monospace;color:#e9edf5;margin:10px 0 8px;letter-spacing:-2px}
-  .name .accent{color:#9ecbff}
+  .name .accent{color:#6ee7a8}
   .claim{font:600 40px ui-sans-serif,system-ui;color:#c7cede;line-height:1.3;max-width:760px}
   .proof{font:600 29px ui-monospace,Menlo,monospace;color:#e8c66a;margin-top:13px}
   .cmd{display:inline-block;margin-top:34px;font:600 34px ui-monospace,Menlo,monospace;color:#7ee08a;background:#161a22;border:1px solid #2b3140;border-radius:12px;padding:14px 26px}
@@ -15,13 +15,13 @@
 </style></head>
 <body>
 <div id="safe">
-  <div class="from">Claude Code -> OpenCode</div>
-  <div class="name">claude-to-<span class="accent">opencode</span></div>
-  <div class="claim">Keep your memory. Keep your guardrails.</div>
-  <div class="proof">dry run first · live memory · command hooks</div>
-  <div><span class="cmd"><span class="dim">$</span> npx claude-to-opencode</span></div>
+  <div class="from">CLAUDE CODE TO DEEPSEEK HARNESS</div>
+  <div class="name">dsh-<span class="accent">movein</span></div>
+  <div class="claim">Preview your setup. Move only what fits.</div>
+  <div class="proof">native settings · dry run · no overwrite</div>
+  <div><span class="cmd"><span class="dim">$</span> dsh plugin --profile web add dsh-movein</span></div>
 </div>
-<div class="assets">memory<br>instructions<br>commands<br>agents<br>MCP servers<br>hooks</div>
+<div class="assets">instructions<br>skills<br>commands<br>agents<br>hooks<br>permissions<br>MCP servers</div>
 <script>
 window.DURATION=0; window.seek=()=>{};
 window.ready=(async()=>{await document.fonts.ready;})();
