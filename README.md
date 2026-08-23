@@ -6,14 +6,35 @@
   <a href="https://www.npmjs.com/package/dsh-movein"><img alt="npm" src="https://img.shields.io/npm/v/dsh-movein?style=flat-square&color=4b6fff"></a>
   <a href="https://github.com/sjh9714/dsh-movein/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/sjh9714/dsh-movein/actions/workflows/ci.yml/badge.svg"></a>
   <a href="LICENSE"><img alt="MIT" src="https://img.shields.io/badge/license-MIT-2EA44F?style=flat-square"></a>
-  <a href="https://www.npmjs.com/package/dsh-movein"><img alt="downloads" src="https://img.shields.io/npm/dm/dsh-movein?style=flat-square&color=8250df"></a>
 </p>
 
-Move your Claude Code, Codex, or OpenCode setup into [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness).
+Migrate your Claude Code setup into [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness) without rebuilding it by hand.
 
-One command finds the parts DSH can use, shows a dry run, and moves them without overwriting existing destinations.
+Preview instructions, skills, commands, agents, hooks, permission rules, and MCP servers before DSH writes anything. Existing destinations stay untouched.
 
-![A dsh-movein dry run showing Claude Code assets moving into DSH](https://raw.githubusercontent.com/sjh9714/dsh-movein/main/docs/report.png)
+![The native DSH settings page previews and applies a Claude Code setup](./docs/settings-demo.gif)
+
+This GIF uses two screenshots from a live DSH `0.1.1-rc.2` run. The first shows the dry run and the second shows the applied result.
+
+If this saves you setup time, [star dsh-movein](https://github.com/sjh9714/dsh-movein).
+
+## Import inside DSH
+
+```sh
+dsh plugin --profile web add dsh-movein
+```
+
+Restart `dsh web`, open **Settings**, then choose **Move in**.
+
+- Claude Code is the primary path
+- Dry run is the default
+- Every category can be included or excluded
+- Conflicts and unsupported entries appear before apply
+- Codex and OpenCode stay available under the secondary origin panel
+
+The same plugin also registers `movein_from_claude_code` and `movein_from_opencode` for model-driven use. Both tools stay dry until `apply=true`.
+
+## Use the CLI
 
 ## Pick your origin
 
@@ -32,19 +53,6 @@ npx dsh-movein --from opencode --apply
 ```
 
 Every command is a dry run until `--apply` is present. Use `--copy` if you want copied skills instead of symlinks.
-
-## Use it inside DSH
-
-```sh
-dsh plugin --profile web add dsh-movein
-```
-
-Restart `dsh web`. The plugin adds two tools.
-
-- `movein_from_claude_code`
-- `movein_from_opencode`
-
-Both tools are dry run by default and accept `apply=true` when you are ready.
 
 ## Compatibility
 
@@ -140,7 +148,7 @@ Conversation history belongs in [dsh-chat-import](https://github.com/Nwflower/ds
 
 ## Project status
 
-Tested end to end against DSH `0.1.0-rc.6` and `0.1.0-rc.7`. CI runs the same tests with `npm ci` on Linux, macOS, and Windows.
+The CLI migration paths retain their rc.6 and rc.7 regression coverage. CI also boots a packed release inside current DSH and verifies the browser client registration and settings route against DSH `0.1.1-rc.2`.
 
 Listed in [awesome-dsh-plugin](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin) and [awesome-deepseek-harness](https://github.com/0xsline/awesome-deepseek-harness). The measured migration notes also appear in [dsh-handbook](https://github.com/Electricitysheep/dsh-handbook).
 

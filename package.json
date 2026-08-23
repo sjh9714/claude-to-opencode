@@ -1,16 +1,28 @@
 {
   "name": "dsh-movein",
-  "version": "0.11.1",
-  "description": "Move Claude Code, Codex, and OpenCode skills, commands, agents, and MCP config into DeepSeek Harness.",
+  "version": "0.12.0",
+  "description": "Migrate Claude Code setup into DeepSeek Harness. Import skills, commands, agents, hooks, permission rules, and MCP config. Codex and OpenCode supported.",
   "license": "MIT",
   "type": "module",
   "main": "shell/index.mjs",
+  "exports": {
+    ".": "./shell/index.mjs",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
   "bin": {
     "dsh-movein": "bin/cli.mjs"
   },
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-locale"
+      ],
+      "platform": "web"
     }
   },
   "files": [
@@ -18,7 +30,10 @@
     "lib",
     "shell",
     "cordis.patch.yml",
-    "README.md"
+    "README.md",
+    "docs/settings-demo.gif",
+    "docs/settings-import.jpg",
+    "docs/settings-applied.jpg"
   ],
   "engines": {
     "node": ">=18"
@@ -27,7 +42,10 @@
     "jsonc-parser": "^3.3.1"
   },
   "scripts": {
-    "test": "node test/test.mjs && node test/opencode.test.mjs && node test/opencode-flow.test.mjs && node test/to-opencode.test.mjs && node test/opencode-hooks.test.mjs && node test/alias-package.test.mjs"
+    "build": "node scripts/build.mjs",
+    "prepare": "npm run build",
+    "test": "node test/test.mjs && node test/opencode.test.mjs && node test/opencode-flow.test.mjs && node test/to-opencode.test.mjs && node test/opencode-hooks.test.mjs && node test/alias-package.test.mjs && node test/settings-ui.test.mjs",
+    "prepublishOnly": "npm run build && npm test"
   },
   "keywords": [
     "dsh",
@@ -48,5 +66,24 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/sjh9714/dsh-movein.git"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-client-locale": "^0.1.1-rc.2",
+    "@deepseek-ai/dsh-client-runtime": "^0.1.1-rc.2",
+    "@deepseek-ai/dsh-client-ui-settings": "^0.1.1-rc.2",
+    "@deepseek-ai/dsh-client-ui-slots": "^0.1.1-rc.2",
+    "@deepseek-ai/dsh-host-webserver": "^0.1.1-rc.2",
+    "esbuild": "^0.28.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
   }
 }

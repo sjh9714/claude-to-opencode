@@ -9,6 +9,7 @@ import { runDoctor, renderDoctor } from '../lib/doctor.mjs';
 import { scanCodex } from '../lib/codex.mjs';
 import { scanOpenCode } from '../lib/opencode.mjs';
 import { planOpenCodeActions, applyOpenCodeActions, renderOpenCodeReport } from '../lib/to-opencode.mjs';
+import { claimStarPrompt } from '../lib/star.mjs';
 
 const args = process.argv.slice(2);
 if (args.includes('--help') || args.includes('-h')) {
@@ -116,5 +117,6 @@ const scanResult = from === 'codex'
     : scan({ project });
 const actions = planActions(scanResult, { copy });
 if (apply) applyActions(actions, { scanResult });
-console.log(renderReport(scanResult, actions, { apply }));
+const starPrompt = apply && claimStarPrompt(scanResult.dshHome, actions);
+console.log(renderReport(scanResult, actions, { apply, starPrompt }));
 process.exit(actions.some((a) => a.status === 'error') ? 1 : 0);

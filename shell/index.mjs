@@ -7,6 +7,8 @@ import { scan } from '../lib/scan.mjs'
 import { scanOpenCode } from '../lib/opencode.mjs'
 import { planActions, applyActions } from '../lib/apply.mjs'
 import { renderReport } from '../lib/report.mjs'
+import { claimStarPrompt } from '../lib/star.mjs'
+import { registerMoveinRoute } from './routes.mjs'
 
 export const name = 'dsh-movein'
 export const inject = ['tools']
@@ -34,7 +36,8 @@ function definition(name, description, scanner) {
       const scanResult = scanner({ project })
       const actions = planActions(scanResult, { copy: args.copy === true })
       if (args.apply === true) applyActions(actions, { scanResult })
-      return renderReport(scanResult, actions, { apply: args.apply === true })
+      const starPrompt = args.apply === true && claimStarPrompt(scanResult.dshHome, actions)
+      return renderReport(scanResult, actions, { apply: args.apply === true, starPrompt })
     },
   }
 }
@@ -50,4 +53,9 @@ export function apply(ctx) {
     'Scan the local OpenCode setup and move its instructions, skills, commands, agents, and MCP servers into DSH. Dry run by default.',
     scanOpenCode,
   ))
+  if (typeof ctx.inject === 'function') {
+    ctx.inject(['webServer'], (scope) => {
+      scope.effect(() => registerMoveinRoute(scope), 'dsh-movein settings route')
+    })
+  }
 }

@@ -8,13 +8,33 @@
   <a href="LICENSE"><img alt="MIT" src="https://img.shields.io/badge/license-MIT-2EA44F?style=flat-square"></a>
 </p>
 
-一条命令，把 Claude Code、Codex 或 OpenCode 配置搬进 [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness)。
+把 Claude Code 环境搬进 [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness)，不用重新手工配置。
 
-先预演，再搬入。已有目标不会被覆盖。
+先查看指令、技能、命令、子代理、hooks、权限规则和 MCP 的所有变化，再决定是否写入。已有目标不会被覆盖。
 
-![dsh-movein 预演 Claude Code 资产搬入 DSH](https://raw.githubusercontent.com/sjh9714/dsh-movein/main/docs/report.png)
+![DSH 原生设置页预览并应用 Claude Code 环境](./docs/settings-demo.gif)
 
-## 选择来源
+这个 GIF 使用真实 DSH `0.1.1-rc.2` 运行中的两张截图。第一张是预演，第二张是应用结果。
+
+如果它节省了配置时间，欢迎 [Star dsh-movein](https://github.com/sjh9714/dsh-movein)。
+
+## 在 DSH 设置中搬入
+
+```sh
+dsh plugin --profile web add dsh-movein
+```
+
+重启 `dsh web`，打开 **Settings**，再选择 **Move in**。
+
+- Claude Code 是主路径
+- 默认只预演
+- 每一类内容都可以单独选择
+- 冲突与不支持内容会在应用前显示
+- Codex 和 OpenCode 保留在次级来源面板
+
+插件也会注册 `movein_from_claude_code` 与 `movein_from_opencode`。两个工具默认只预演，确认后传入 `apply=true`。
+
+## 使用 CLI
 
 ```sh
 # Claude Code
@@ -31,19 +51,6 @@ npx dsh-movein --from opencode --apply
 ```
 
 没有 `--apply` 时只预演。需要复制技能而不是符号链接时加 `--copy`。
-
-## 在 DSH 内使用
-
-```sh
-dsh plugin --profile web add dsh-movein
-```
-
-重启 `dsh web`。插件会注册两个工具。
-
-- `movein_from_claude_code`
-- `movein_from_opencode`
-
-两个工具默认都只预演，确认后传入 `apply=true`。
 
 ## 兼容范围
 
@@ -132,7 +139,7 @@ npx claude-to-opencode --apply
 
 ## 项目状态
 
-已在 DSH `0.1.0-rc.6` 和 `0.1.0-rc.7` 完成端到端验证。CI 使用 `npm ci` 在 Linux、macOS 和 Windows 上运行同一套测试。
+CLI 搬入路径保留 rc.6 与 rc.7 的回归覆盖。CI 还会把 release tarball 安装进当前 DSH，并针对 DSH `0.1.1-rc.2` 验证浏览器 client 注册和设置 route。
 
 ## 许可
 
