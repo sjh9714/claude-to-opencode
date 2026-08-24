@@ -56,7 +56,7 @@ export function runMovein({ project, origin = 'claude', apply = false, copy = fa
   const scanResult = filterScanResult(raw, include);
   const actions = planActions(scanResult, { copy });
   if (apply) applyActions(actions, { scanResult });
-  const starPrompt = apply && claimStarPrompt(scanResult.dshHome, actions);
+  const starPrompt = apply && claimStarPrompt(scanResult.dshHome, actions, scanOptions.starRepository);
   return {
     ok: !actions.some((action) => action.status === 'error'),
     applied: apply,

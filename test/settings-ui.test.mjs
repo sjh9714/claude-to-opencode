@@ -6,6 +6,7 @@ import vm from 'node:vm';
 import { createRequire } from 'node:module';
 import { filterScanResult, runMovein } from '../shell/routes.mjs';
 import { installerCommand } from '../lib/apply.mjs';
+import { claimStarPrompt } from '../lib/star.mjs';
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-movein-ui-'));
 const home = path.join(tmp, 'home');
@@ -32,7 +33,7 @@ assert.deepStrictEqual(filtered.commands, { global: [], project: [] });
 assert.deepStrictEqual(filtered.hookConfigs, []);
 assert.deepStrictEqual(filtered.permissions, { deny: [], ask: [] });
 
-const options = { home, dshHome };
+const options = { home, dshHome, starRepository: () => false };
 const preview = runMovein({ project, include: ['skills'] }, options);
 assert.strictEqual(preview.applied, false);
 assert.strictEqual(preview.actions.length, 1);
@@ -48,6 +49,14 @@ assert.match(applied.report, /Star it at https:\/\/github\.com\/sjh9714\/dsh-mov
 
 const repeated = runMovein({ project, apply: true, include: ['skills'] }, options);
 assert.strictEqual(repeated.starPrompt, false, 'star prompt appears once');
+
+let starCalls = 0;
+const autoStarHome = path.join(tmp, 'auto-star-home');
+assert.strictEqual(claimStarPrompt(autoStarHome, [{ status: 'done' }], () => {
+  starCalls += 1;
+  return true;
+}), false, 'successful automatic star needs no prompt');
+assert.strictEqual(starCalls, 1);
 
 const fakeDshBin = path.join(tmp, 'node_modules', '@deepseek-ai', 'dsh', 'lib', 'bin.js');
 fs.mkdirSync(path.dirname(fakeDshBin), { recursive: true });
