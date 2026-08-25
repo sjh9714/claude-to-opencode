@@ -1,18 +1,18 @@
 # dsh-movein
 
-[English](./README.md)
+[English](../README.md)
 
 <p align="center">
   <a href="https://www.npmjs.com/package/dsh-movein"><img alt="npm" src="https://img.shields.io/npm/v/dsh-movein?style=flat-square&color=4b6fff"></a>
   <a href="https://github.com/sjh9714/dsh-movein/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/sjh9714/dsh-movein/actions/workflows/ci.yml/badge.svg"></a>
-  <a href="LICENSE"><img alt="MIT" src="https://img.shields.io/badge/license-MIT-2EA44F?style=flat-square"></a>
+  <a href="../LICENSE"><img alt="MIT" src="https://img.shields.io/badge/license-MIT-2EA44F?style=flat-square"></a>
 </p>
 
 把 Claude Code 环境搬进 [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness)，不用重新手工配置。
 
 先查看指令、技能、命令、子代理、hooks、权限规则和 MCP 的所有变化，再决定是否写入。已有目标不会被覆盖。
 
-![DSH 原生设置页预览并应用 Claude Code 环境](./docs/settings-demo.gif)
+![DSH 原生设置页预览并应用 Claude Code 环境](./settings-demo.gif)
 
 这个 GIF 使用真实 DSH `0.1.1-rc.2` 运行中的两张截图。第一张是预演，第二张是应用结果。
 
@@ -60,7 +60,7 @@ npx dsh-movein --from opencode --apply
 | Codex | 全局 `AGENTS.md`、自定义 prompts 和 `config.toml` 中的 stdio MCP |
 | OpenCode | V1 或 V2 JSON 和 JSONC 中的指令、技能、命令、agents、本地与远程 MCP |
 
-[完整兼容性表](docs/compat.md) 会逐项说明来源路径、DSH 目标、保留行为和不支持内容。
+[完整兼容性表](./compat.md) 会逐项说明来源路径、DSH 目标、保留行为和不支持内容。
 
 ## 把 OpenCode 作为来源
 

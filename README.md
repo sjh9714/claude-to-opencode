@@ -1,6 +1,6 @@
 # dsh-movein
 
-[中文](./README.zh.md)
+[中文](./docs/README.zh.md)
 
 <p align="center">
   <a href="https://www.npmjs.com/package/dsh-movein"><img alt="npm" src="https://img.shields.io/npm/v/dsh-movein?style=flat-square&color=4b6fff"></a>
