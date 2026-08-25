@@ -37,6 +37,9 @@ jobs:
         run: |
           pnpm dlx @deepseek-ai/dsh --profile web --dump-config > composed.txt
           grep -q "dsh-movein" composed.txt
+      - name: live doctor preserves the installed profile
+        timeout-minutes: 5
+        run: node bin/cli.mjs doctor --live
       - name: OpenCode environment placeholders boot in DSH
         env:
           OPENCODE_CONFIG: ${{ runner.temp }}/opencode.json

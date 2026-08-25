@@ -6,6 +6,7 @@ import { planActions, applyActions, writeManifest, restoreLatestBackup, emitRule
 import { renderReport } from '../lib/report.mjs';
 import { scanReverse, planReverseActions, renderReverseReport } from '../lib/reverse.mjs';
 import { runDoctor, renderDoctor } from '../lib/doctor.mjs';
+import { runLiveDoctor } from '../lib/doctor-live.mjs';
 import { scanCodex } from '../lib/codex.mjs';
 import { scanOpenCode } from '../lib/opencode.mjs';
 import { planOpenCodeActions, applyOpenCodeActions, renderOpenCodeReport } from '../lib/to-opencode.mjs';
@@ -19,7 +20,7 @@ Usage: npx dsh-movein [projectDir] [options]
 
 Commands:
   (default)   scan and show the moving estimate, --apply to move in
-  doctor      verify a finished move (skills loaded, packages resolvable, matcher case)
+  doctor      verify a finished move; --live validates DSH, composes it, then boots a safe baseline
   restore     put back the newest cordis.patch.yml backup
 
 Options:
@@ -30,6 +31,7 @@ Options:
   --to <target>    dsh, opencode (default: dsh)
   --reverse     bring DSH-born skills and instructions back to Claude Code (dual boot)
   --emit-rules  print your deny/ask rules in dsh-permission-rules YAML and exit
+  --live        with doctor, validate boot-free dump, compose, and boot a safe official baseline
   -h, --help    this help
 
 Claude Code can move to OpenCode or DSH. Codex and OpenCode can move to DSH.
@@ -67,8 +69,21 @@ const project = positionals[0] ? path.resolve(positionals[0]) : process.cwd();
 
 if (command === 'doctor') {
   const checks = runDoctor({ project });
+  let interrupted = null;
+  if (args.includes('--live')) {
+    const controller = new AbortController();
+    const onSigint = () => { interrupted = 'SIGINT'; controller.abort('SIGINT'); };
+    const onSigterm = () => { interrupted = 'SIGTERM'; controller.abort('SIGTERM'); };
+    process.once('SIGINT', onSigint);
+    process.once('SIGTERM', onSigterm);
+    try { checks.push(...await runLiveDoctor({ signal: controller.signal })); }
+    finally {
+      process.removeListener('SIGINT', onSigint);
+      process.removeListener('SIGTERM', onSigterm);
+    }
+  }
   console.log(renderDoctor(checks));
-  process.exit(checks.some((c) => c.level === 'bad') ? 1 : 0);
+  process.exit(interrupted === 'SIGINT' ? 130 : interrupted === 'SIGTERM' ? 143 : checks.some((c) => c.level === 'bad') ? 1 : 0);
 }
 if (command === 'restore') {
   const src = restoreLatestBackup(process.env.DSH_HOME || path.join(os.homedir(), '.dsh'));

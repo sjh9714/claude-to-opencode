@@ -102,9 +102,13 @@ If any JSONC file cannot be parsed, `--apply` is blocked before the first write.
 
 ```sh
 npx dsh-movein doctor
+npx dsh-movein doctor --live
 ```
 
 `doctor` checks recorded destinations, skill frontmatter, required packages, and supported Claude Code hook mappings.
+`doctor --live` never activates the migrated configuration. It requires an already-installed `@deepseek-ai/dsh` `0.1.1-rc.2` or newer and first proves the boot-free `web --dump-config` contract in a separate disposable snapshot containing only the official `@deepseek-ai/dsh-base` and `@deepseek-ai/dsh-web-app` bundles and empty patch layers. Only after that succeeds does it ask DSH to compose the active migration snapshot. Both dumps must return a bounded, non-empty config with the expected sectioned YAML-list shape; their output is discarded and never printed. It then resets the active snapshot to the same official base/web-only configuration, boots it on an OS-assigned loopback port, and verifies its HTML boot wire and one same-origin JavaScript bundle. Static `doctor` checks the migrated package references separately.
+
+No DSH download, model, or API credential is used. Child processes receive only a small OS, `PATH`, and locale allowlist; home, application-data, XDG, cache, and temporary paths all point inside the disposable snapshot. Shutdown signals the retained direct child handle and success requires observing that child exit and the loopback port become unreachable. It does not issue PID-tree kill commands. If child termination cannot be confirmed, the snapshot is preserved and the live check fails. Live checking requires the DSH-supported Node 22.19+ or 24+ runtime; Node 23 is rejected before any child starts.
 
 Then inspect the composed DSH profile.
 
