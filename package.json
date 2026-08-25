@@ -45,7 +45,7 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "prepare": "npm run build",
-    "test": "node test/test.mjs && node test/opencode.test.mjs && node test/opencode-flow.test.mjs && node test/to-opencode.test.mjs && node test/opencode-hooks.test.mjs && node test/alias-package.test.mjs && node test/settings-ui.test.mjs",
+    "test": "node test/test.mjs && node test/doctor-live.test.mjs && node test/opencode.test.mjs && node test/opencode-flow.test.mjs && node test/to-opencode.test.mjs && node test/opencode-hooks.test.mjs && node test/alias-package.test.mjs && node test/settings-ui.test.mjs",
     "prepublishOnly": "npm run build && npm test"
   },
   "keywords": [
