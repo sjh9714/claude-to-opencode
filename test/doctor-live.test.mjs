@@ -192,6 +192,7 @@ const assertCapabilityStopped = () => {
 const liveSnapshotNames = () => new Set(fs.readdirSync(os.tmpdir()).filter((name) => (
   name.startsWith('dsh-movein-live-') && name !== path.basename(root)
 )));
+const runFakeDoctor = (options) => runLiveDoctor({ nodeVersion: '22.19.0', ...options });
 const removePreservedSnapshots = (names) => {
   for (const name of names) {
     assert.match(name, /^dsh-movein-live-[A-Za-z0-9_-]+$/, 'only the test-created live snapshot may be removed');
@@ -207,7 +208,7 @@ try {
   assert.match(help, /--live\s+with doctor/);
 
   reset();
-  const success = await runLiveDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 2_000, shutdownTimeoutMs: 1_000 });
+  const success = await runFakeDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 2_000, shutdownTimeoutMs: 1_000 });
   assert.deepStrictEqual(success.map((check) => check.level), ['ok', 'ok', 'ok']);
   assert.match(success[0].note, /boot-free config-dump capability.*validated and discarded/);
   assert.match(success[1].note, /composed without activation.*validated and discarded/);
@@ -220,20 +221,20 @@ try {
 
   const missingHome = path.join(root, 'missing');
   fs.mkdirSync(missingHome);
-  const missing = await runLiveDoctor({ dshHome: missingHome, timeoutMs: 100 });
+  const missing = await runFakeDoctor({ dshHome: missingHome, timeoutMs: 100 });
   assert.strictEqual(missing[0].level, 'bad');
   assert.match(missing[0].note, /not installed.*no download attempted/);
 
   reset();
   setVersion('0.1.1-rc.1');
-  const oldDsh = await runLiveDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 100 });
+  const oldDsh = await runFakeDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 100 });
   assert.strictEqual(oldDsh[0].level, 'bad');
   assert.match(oldDsh[0].note, /predates the known-safe 0\.1\.1-rc\.2.*child not started/);
   assert.strictEqual(fs.readFileSync(marker, 'utf8'), '', 'an old DSH version must be rejected before child spawn');
   setVersion('0.1.1-rc.2');
 
   reset();
-  const unsupported = await runLiveDoctor({ dshHome: fakeHome, env: envFor(), nodeVersion: '23.6.0' });
+  const unsupported = await runFakeDoctor({ dshHome: fakeHome, env: envFor(), nodeVersion: '23.6.0' });
   assert.strictEqual(unsupported[0].level, 'bad');
   assert.match(unsupported[0].note, /runtime unsupported on Node 23\.6\.0.*child not started/);
   assert.strictEqual(fs.readFileSync(marker, 'utf8'), '', 'unsupported Node must be rejected before child spawn');
@@ -245,14 +246,14 @@ try {
     ['capability-overflow', /stdout exceeded 64 KiB/],
   ]) {
     reset(mode);
-    const result = await runLiveDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 1_000, shutdownTimeoutMs: 500 });
+    const result = await runFakeDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 1_000, shutdownTimeoutMs: 500 });
     assert.deepStrictEqual(result.map((check) => check.level), ['bad'], `${mode}: ${JSON.stringify(result)}`);
     assert.match(result[0].note, expected);
     assertCapabilityStopped();
   }
 
   reset('fail');
-  const failed = await runLiveDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 1_000, shutdownTimeoutMs: 500 });
+  const failed = await runFakeDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 1_000, shutdownTimeoutMs: 500 });
   assert.strictEqual(failed.at(-1).level, 'bad');
   assert.match(failed.at(-1).note, /code 7.*fake startup failure/);
 
@@ -263,7 +264,7 @@ try {
     ['composition-overflow', /stdout exceeded 64 KiB/],
   ]) {
     reset(mode);
-    const result = await runLiveDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 1_000, shutdownTimeoutMs: 500 });
+    const result = await runFakeDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 1_000, shutdownTimeoutMs: 500 });
     assert.deepStrictEqual(result.map((check) => check.level), ['ok', 'bad', 'ok']);
     assert.match(result[1].note, expected);
     assert.match(fs.readFileSync(marker, 'utf8'), /capability\ncomposed\nstarted\nasset fetched\nstopped/);
@@ -271,7 +272,7 @@ try {
   }
 
   reset('timeout');
-  const timedOut = await runLiveDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 150, shutdownTimeoutMs: 1_000 });
+  const timedOut = await runFakeDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 150, shutdownTimeoutMs: 1_000 });
   assert.strictEqual(timedOut.at(-1).level, 'bad');
   assert.match(timedOut.at(-1).note, /timed out.*stopped cleanly/);
   assert.match(fs.readFileSync(marker, 'utf8'), /stopped/, 'timeout must terminate the child');
@@ -284,25 +285,25 @@ try {
       controller.abort('test signal');
     }
   }, 5);
-  const interrupted = await runLiveDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 2_000, shutdownTimeoutMs: 1_000, signal: controller.signal });
+  const interrupted = await runFakeDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 2_000, shutdownTimeoutMs: 1_000, signal: controller.signal });
   clearInterval(abortPoll);
   assert.strictEqual(interrupted.at(-1).level, 'bad');
   assert.match(interrupted.at(-1).note, /interrupted by test signal.*stopped cleanly/);
   assert.match(fs.readFileSync(marker, 'utf8'), /stopped/, 'abort signal must terminate the child');
 
   reset('http-500');
-  const httpFailure = await runLiveDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 750, shutdownTimeoutMs: 1_000 });
+  const httpFailure = await runFakeDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 750, shutdownTimeoutMs: 1_000 });
   assert.strictEqual(httpFailure.at(-1).level, 'bad');
   assert.match(httpFailure.at(-1).note, /last HTTP 500/);
   assert.match(fs.readFileSync(marker, 'utf8'), /stopped/, 'failed readiness must terminate the child');
 
   reset('invalid-shape');
-  const invalidShape = await runLiveDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 750, shutdownTimeoutMs: 1_000 });
+  const invalidShape = await runFakeDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 750, shutdownTimeoutMs: 1_000 });
   assert.strictEqual(invalidShape.at(-1).level, 'bad');
   assert.match(invalidShape.at(-1).note, /invalid __DSH_BOOT__ wire shape/);
 
   reset('malformed-second');
-  const malformedSecond = await runLiveDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 750, shutdownTimeoutMs: 1_000 });
+  const malformedSecond = await runFakeDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 750, shutdownTimeoutMs: 1_000 });
   assert.strictEqual(malformedSecond.at(-1).level, 'bad');
   assert.match(malformedSecond.at(-1).note, /invalid __DSH_BOOT__ wire shape/);
   assert.doesNotMatch(fs.readFileSync(marker, 'utf8'), /asset fetched/, 'one valid row must not hide a malformed second wire row');
@@ -328,7 +329,7 @@ try {
       }
       return { reachable: true, ready: false, status: 200 };
     };
-    const exited = await runLiveDoctor({
+    const exited = await runFakeDoctor({
       dshHome: fakeHome,
       env: envFor(),
       timeoutMs: 1_000,
@@ -348,12 +349,12 @@ try {
   }
 
   reset('stubborn');
-  const forced = await runLiveDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 500, shutdownTimeoutMs: 100 });
+  const forced = await runFakeDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 500, shutdownTimeoutMs: 100 });
   assert.strictEqual(forced.at(-1).level, 'bad');
   assert.match(forced.at(-1).note, /required forced cleanup/);
 
   reset();
-  const windows = await runLiveDoctor({
+  const windows = await runFakeDoctor({
     dshHome: fakeHome,
     env: envFor(),
     timeoutMs: 1_000,
