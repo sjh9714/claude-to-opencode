@@ -13,6 +13,21 @@ const ttyIn = { isTTY: true };
 const outputText = [];
 const ttyOut = { isTTY: true, write: (text) => outputText.push(String(text)) };
 
+function nonCiEnv(overrides = {}) {
+  const env = { ...process.env, ...overrides };
+  for (const name of [
+    'CI',
+    'GITHUB_ACTIONS',
+    'GITLAB_CI',
+    'BUILDKITE',
+    'CIRCLECI',
+    'TF_BUILD',
+    'JENKINS_URL',
+    'TEAMCITY_VERSION',
+  ]) delete env[name];
+  return env;
+}
+
 const ghCalls = [];
 assert.strictEqual(starRepository({
   platform: 'linux',
@@ -240,14 +255,14 @@ assert.ok(!fs.existsSync(path.join(confirmInvalidHome, '.dsh-movein-star-prompte
 
 const cli = fileURLToPath(new URL('../bin/cli.mjs', import.meta.url));
 const cliWriteError = spawnSync(process.execPath, [cli, '--confirm-star', 'yes'], {
-  env: { ...process.env, CI: '', DSH_HOME: blockedHome },
+  env: nonCiEnv({ DSH_HOME: blockedHome }),
   encoding: 'utf8',
 });
 assert.strictEqual(cliWriteError.status, 1, 'marker write failure exits nonzero');
 assert.match(cliWriteError.stdout, /Could not record the Star confirmation/);
 
 const cliAlready = spawnSync(process.execPath, [cli, '--confirm-star', 'no'], {
-  env: { ...process.env, CI: '', DSH_HOME: confirmNoHome },
+  env: nonCiEnv({ DSH_HOME: confirmNoHome }),
   encoding: 'utf8',
 });
 assert.strictEqual(cliAlready.status, 0);
