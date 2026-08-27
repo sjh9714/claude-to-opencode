@@ -43,7 +43,7 @@ Claude Code permission rule shape, `Tool` or `Tool(specifier)`.
 
 Mapped tools. `Bash` (terminal_open/terminal_send and friends), `Read`, `Write`, `Edit`, and every `mcp__*` tool. `*` patterns match as a superset, over-denying is the safe direction for a gate.
 
-Deny wins over ask. Rules that reference tools with no DSH equivalent never match anything, harmless but pointless, the [dsh-movein](https://github.com/sjh9714/claude-to-opencode) migration report lists them for you.
+Deny wins over ask. Rules that reference tools with no DSH equivalent never match anything, harmless but pointless, the [dsh-movein](https://github.com/sjh9714/dsh-movein) migration report lists them for you.
 
 ## Coming from Claude Code?
 
