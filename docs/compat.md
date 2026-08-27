@@ -82,7 +82,7 @@ OpenCode paths and precedence follow the official [V2 configuration documentatio
 
 ## Verify hook enforcement after moving
 
-`dsh-movein doctor` is intentionally non-invasive. It reads the three Claude settings layers, checks that the DSH bridge row and packages exist, and reports definitely dead events, handler types, and matcher shapes. It does **not** execute a hook or mutate a settings file. `doctor --live` also keeps the migrated configuration boot-free: it composes that configuration, discards the bounded output, then boots only an official base/web snapshot. A green live doctor proves composition and host boot, not hook policy enforcement.
+`dsh-movein doctor` is intentionally non-invasive. It reads the three Claude settings layers, checks that every layer with supported command hooks has its own DSH bridge row and that the required packages exist, and reports definitely dead events, handler types, and matcher shapes. It does **not** execute a hook or mutate a settings file. `doctor --live` also keeps the migrated configuration boot-free: it composes that configuration, discards the bounded output, then boots only an official base/web snapshot. A green live doctor proves composition and host boot, not hook policy enforcement.
 
 Before relying on a moved hook to block tools:
 

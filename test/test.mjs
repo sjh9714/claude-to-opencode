@@ -161,7 +161,7 @@ assert.ok(manifest[0].moved.some((m) => m.kind === 'command' && m.dest.endsWith(
   const wired = runDoctor({ home, project });
   assert.ok(wired.some((check) => check.level === 'ok'
     && check.label === 'hook bridge'
-    && /2 supported command hook\(s\).*wiring, not runtime enforcement/.test(check.note)));
+    && /2 supported command hook\(s\) across 1 settings file\(s\).*wiring, not runtime enforcement/.test(check.note)));
   assert.ok(wired.some((check) => check.level === 'warn'
     && check.label === 'hook enforcement'
     && /continue.*#1514/.test(check.note)));
@@ -171,12 +171,21 @@ assert.ok(manifest[0].moved.some((m) => m.kind === 'command' && m.dest.endsWith(
 
   const localSettings = path.join(project, '.claude', 'settings.local.json');
   fs.writeFileSync(localSettings, JSON.stringify({
-    hooks: { PreCompact: [{ hooks: [{ type: 'command', command: 'node compact.mjs' }] }] },
+    hooks: {
+      PreCompact: [{ hooks: [{ type: 'command', command: 'node compact.mjs' }] }],
+      PreToolUse: [{ matcher: '^(Bash|Read)$', hooks: [{ type: 'command', command: 'node deny.mjs' }] }],
+    },
   }));
   const withLocal = runDoctor({ home, project });
   assert.ok(withLocal.some((check) => check.level === 'warn'
     && check.label === 'hook PreCompact'
     && check.note.includes(localSettings)), 'project-local hook settings are inspected');
+  assert.ok(withLocal.some((check) => check.level === 'warn'
+    && check.label === 'hook matcher'
+    && check.note.includes('^(Bash|Read)$')), 'uppercase tools inside a regex matcher are warned');
+  assert.ok(withLocal.some((check) => check.level === 'bad'
+    && check.label === 'hook bridge'
+    && check.note.includes(localSettings)), 'each supported settings layer needs its own bridge row');
   fs.unlinkSync(localSettings);
 }
 
@@ -286,7 +295,7 @@ assert.match(patch2, /keep-me/, 'user rows preserved');
   assert.match(doc, /✓ package @deepseek-ai\/dsh-mcp-client, resolvable/);
   assert.match(doc, /✓ package dsh-movein-permissions, resolvable/);
   assert.match(doc, /✓ moved assets/, 'manifest destinations verified');
-  assert.match(doc, /✗ hook bridge, 2 supported command hook\(s\) found, but cordis\.patch\.yml does not reference/, 'missing hook bridge row is fatal');
+  assert.match(doc, /✗ hook bridge, 2 supported command hook\(s\) found, but no generated bridge row points to/, 'missing hook bridge row is fatal');
   assert.match(doc, /⚠ hook enforcement, DSH records but does not enforce/, 'known runtime enforcement gap is explicit');
   assert.match(doc, /○ hook canary, static inspection cannot prove hook enforcement/, 'manual canary is explicit');
   assert.match(doc, /NEW session/, 'catalog snapshot reminder');
