@@ -94,8 +94,11 @@ assert.strictEqual(fs.readFileSync(path.join(project, '.dsh', 'skills', 'project
 const applied = run([project, '--from', 'opencode', '--apply']);
 assert.strictEqual(applied.status, 0, applied.stderr + applied.stdout);
 assert.match(applied.stdout, /moved in/);
-assert.strictEqual(fs.readlinkSync(path.join(dshHome, 'AGENTS.md')), path.join(globalRoot, 'GLOBAL.md'));
-assert.ok(fs.lstatSync(path.join(dshHome, 'skills', 'global-skill')).isSymbolicLink());
+assert.strictEqual(fs.readFileSync(path.join(dshHome, 'AGENTS.md'), 'utf8'), fs.readFileSync(path.join(globalRoot, 'GLOBAL.md'), 'utf8'));
+assert.strictEqual(
+  fs.readFileSync(path.join(dshHome, 'skills', 'global-skill', 'SKILL.md'), 'utf8'),
+  fs.readFileSync(path.join(globalRoot, 'skills', 'global-skill', 'SKILL.md'), 'utf8'),
+);
 assert.strictEqual(fs.readFileSync(path.join(project, '.dsh', 'skills', 'project-skill', 'SKILL.md'), 'utf8'), 'keep existing\n');
 
 const reviewer = fs.readFileSync(path.join(project, '.dsh', 'skills', 'reviewer', 'SKILL.md'), 'utf8');

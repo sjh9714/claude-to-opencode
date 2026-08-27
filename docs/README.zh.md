@@ -56,7 +56,7 @@ npx dsh-movein --from opencode --apply
 
 | 来源 | 搬入内容 |
 | --- | --- |
-| Claude Code | 全局与项目指令、技能、斜杠命令、MCP、已支持 hooks、子代理和可映射权限规则 |
+| Claude Code | 全局与项目指令、技能、斜杠命令、MCP、DSH 当前支持的 hook 配置子集、子代理和可映射权限规则 |
 | Codex | 全局 `AGENTS.md`、自定义 prompts 和 `config.toml` 中的 stdio MCP |
 | OpenCode | V1 或 V2 JSON 和 JSONC 中的指令、技能、命令、agents、本地与远程 MCP |
 
@@ -100,8 +100,11 @@ npx dsh-movein --from opencode --apply
 
 ```sh
 npx dsh-movein doctor
+npx dsh-movein doctor --live
 dsh --profile web --dump-config | grep -E "mcp-|cc-hooks"
 ```
+
+`doctor` 只做静态检查，不执行任何用户 hook，也不改写 Claude 设置。它会区分“bridge 与依赖已经接好”和“运行时强制已经验证”：前者可以自动确认，后者必须在临时项目的新 DSH session 里用无害的 exit-2 deny canary 验证。当前 DSH 会记录但不会执行 `{"continue":false}`；Windows PowerShell 还可能吞掉原生子进程的 exit 2。详细限制与 canary 步骤见[兼容性表](./compat.md#verify-hook-enforcement-after-moving)。
 
 技能目录按 session 固定，所以搬完后请新建 DSH session。
 

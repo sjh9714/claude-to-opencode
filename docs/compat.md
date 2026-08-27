@@ -1,12 +1,12 @@
 # Agent setup compatibility
 
-This matrix records what `dsh-movein` moves, what DSH already reads, and what remains manual. The DSH behavior was measured against `0.1.0-rc.6` and rechecked end to end on `0.1.0-rc.7`.
+This matrix records what `dsh-movein` moves, what DSH already reads, and what remains manual. The original DSH source audit used `0.1.0-rc.6`; package wiring and safe boot checks were rechecked on `0.1.1-rc.2`. Hook enforcement limitations below track the still-open upstream reports rather than assuming configuration loading implies enforcement.
 
 一份实测的 Claude Code 与 DeepSeek Harness 资产兼容性对照表，基于 DSH `0.1.0-rc.6` 源码逐项验证。中文摘要在文末。
 
 ## Claude Code to OpenCode
 
-This route was loaded end to end with OpenCode `1.18.21` using `debug config`, `debug skill`, and `debug agent`.
+This route was loaded end to end with OpenCode `1.18.23` using `debug config`, `debug skill`, and `debug agent`.
 
 | Claude Code asset | OpenCode result | What happens |
 | --- | --- | --- |
@@ -34,7 +34,7 @@ This route was loaded end to end with OpenCode `1.18.21` using `debug config`, `
 
 | Origin | Instructions | Skills and commands | MCP | Other behavior |
 | --- | --- | --- | --- | --- |
-| Claude Code | Project native, global linked | Skills linked, commands and subagents converted | stdio and HTTP | Supported hooks and mapped deny or ask rules |
+| Claude Code | Project native, global linked | Skills linked, commands and subagents converted | stdio and HTTP | Configures the mapped hook subset and deny or ask rules; hook enforcement still needs a canary |
 | Codex | Global `AGENTS.md` linked | Prompts converted | stdio | Approval and sandbox policy remain with DSH |
 | OpenCode | Project `AGENTS.md` native, one global file linked | Skills linked, commands and agents converted | local and remote | Permissions and plugins remain manual |
 
@@ -73,12 +73,25 @@ OpenCode paths and precedence follow the official [V2 configuration documentatio
 | Skills (`SKILL.md`) | **Format compatible as is** | Frontmatter parses as an open object, only `name` and `description` are required, unknown keys (`allowed-tools`, `license`, ...) are ignored. But `.claude/skills` is NOT one of the roots, so skills have to land in one (see the table below) |
 | Slash-invoking skills | **Same UX** | Users type `/name`, the model loads via a skill tool, same shape both sides |
 | MCP servers (`.mcp.json`) | **Lossless mechanical conversion** | One `dsh-mcp-client` config row per server (stdio and streamable-http). Tool names are literally identical, `mcp__server__tool` on both sides, so nothing referencing them breaks |
-| Hooks (`settings.json` `hooks`) | **First party bridge, partial events** | `@deepseek-ai/dsh-hooks-claude-code` runs your existing hooks config unchanged, same stdin payload, exit code and matcher semantics, `${CLAUDE_PROJECT_DIR}` substituted. 7 of 30 events mapped (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, SubagentStart, SubagentStop), the rest silently skipped. Command hooks only. Known upstream bug, matchers are case sensitive against DSH tool names, a `Bash` matcher does not select the lowercase `bash` tool so security hooks can fail silently (deepseek-harness discussion #582), write matchers lowercase until fixed |
+| Hooks (`settings.json` `hooks`) | **First party bridge, partial and not enforcement-equivalent** | `@deepseek-ai/dsh-hooks-claude-code` reads the configured file, substitutes `${CLAUDE_PROJECT_DIR}`, and maps only 7 of 30 events: SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, SubagentStart, and SubagentStop. Other events are silently skipped during parsing; only command handlers run. Matchers test DSH's lowercase tool names, so a Claude matcher such as `Bash` can select nothing (#582). On Windows, PowerShell may not propagate a native interpreter's exit 2, making an intended deny fail open ([#2485](https://github.com/deepseek-ai/deepseek-harness/discussions/2485), [#3714](https://github.com/deepseek-ai/deepseek-harness/discussions/3714)). On every platform, `{"continue":false}` is recorded but does not halt the run ([#1514](https://github.com/deepseek-ai/deepseek-harness/discussions/1514)). Loading and composing this row therefore does not prove enforcement |
 | Permission rules | **Not native, bridgeable** | DSH has three coarse presets and no per tool allowlist. `deny`/`ask` rules can be enforced at the `tools/pre-execute` gate ([dsh-movein-permissions](../plugin/)), `allow` rules have no equivalent, the DSH preset governs the default |
 | Subagents (`.claude/agents/*.md`) | **No direct import** | DSH agent presets are directories with `agent.cordis.yml`, not markdown. The practical path is converting agent definitions to skills (frontmatter is nearly identical). Fun fact, DSH ships a `subagent-claude-code` provider that literally spawns `claude` as a child agent |
 | Slash commands (`.claude/commands/*.md`) | **No file equivalent** | DSH commands are code-registered. User-invocable skills are the file-based substitute |
 | Sessions | **Hardest, avoid writing** | `~/.dsh/sessions` uses zstd-framed JSONL at `SESSION_FORMAT_VERSION = 0` with an explicit no-compatibility promise and strict event invariants. Import history as plugin-sourced recall messages, never by writing session files. For conversation history use [dsh-chat-import](https://github.com/Nwflower/dsh-chat-import) |
 | Memory / `~/.claude` misc | **Manual** | No DSH counterpart, carry what matters into `AGENTS.md` or skills |
+
+## Verify hook enforcement after moving
+
+`dsh-movein doctor` is intentionally non-invasive. It reads the three Claude settings layers, checks that the DSH bridge row and packages exist, and reports definitely dead events, handler types, and matcher shapes. It does **not** execute a hook or mutate a settings file. `doctor --live` also keeps the migrated configuration boot-free: it composes that configuration, discards the bounded output, then boots only an official base/web snapshot. A green live doctor proves composition and host boot, not hook policy enforcement.
+
+Before relying on a moved hook to block tools:
+
+1. Use a disposable project and a new DSH session. Add a temporary `PreToolUse` command hook with a lowercase DSH tool matcher (`bash` on POSIX, `pwsh` on Windows).
+2. Make the hook exit 2 and ask the agent to run a harmless command such as printing a fixed word. Confirm the tool is denied, not merely that a hook result appears in a log.
+3. On Windows, test the same interpreter shape your real hook uses. For a native command, append `; exit $LASTEXITCODE` where PowerShell syntax permits it, then repeat the canary. A direct `node`, `py`, or other native child without explicit propagation can be observed as a non-blocking exit instead.
+4. Remove the temporary hook. Do not use `{"continue":false}` as a stop control until upstream [#1514](https://github.com/deepseek-ai/deepseek-harness/discussions/1514) is fixed and a runtime canary passes on the DSH version you run.
+
+The canary is manual because automatically invoking an existing hook could execute arbitrary user commands. Migration success, `--dump-config`, and a bridge package being resolvable are necessary wiring checks but are not substitutes for this denial test.
 
 ## Where DSH actually looks for skills
 
@@ -97,14 +110,15 @@ Three details that bite. The project root is the nearest ancestor containing `.g
 
 `dsh-movein` writes into rank 100 and rank 400 (the `.dsh` pair) because those are DSH's own namespace, and `doctor` checks every root above for the silent-drop frontmatter shape, including the `.agents` ones you may have filled by hand.
 
-> rc.7 note (2026-08-17, day of release). The full flow was re-verified against `0.1.0-rc.7` within hours of it landing on npm, plugin boot, `--apply`, composed `dsh-mcp-client` rows and `doctor` all pass unchanged. The table below was measured on rc.6 source and still holds.
+> Current verification note (2026-08-27). Migration regression coverage and the isolated live doctor target DSH `0.1.1-rc.2`; the Claude-to-OpenCode path is checked against OpenCode `1.18.23`. These checks validate loading, conversion, composition, and safe boot. They do not claim that the DSH hook bridge has fixed the open enforcement gaps above.
 
-## Four traps measured the hard way
+## Five traps measured the hard way
 
 1. **A patch row whose package the profile cannot resolve makes `dsh web` boot fatally** (plugin tree failed to load), not a warning. Install first, write config rows only after the package resolves.
 2. **Satellite npm dist-tags lag the core.** The hooks bridge's `latest` was `0.0.1-rc.5` while dsh itself was `0.1.0-rc.6`. Pin installs to the host dsh version.
 3. **`@deepseek-ai/dsh-hook-protocol` is a peer the host install does not ship.** Installing the hooks bridge alone still fails at boot, install the protocol package alongside.
 4. **`dsh plugin add` never installs a release younger than 24 hours.** dsh forwards installs to pnpm, and pnpm 11 ships a default supply-chain cooldown (`minimumReleaseAge` = 1440 minutes). A fresh `dsh plugin add <pkg>` silently picks the newest version older than a day and prints `(x.y.z is available)` for the one it skipped. Measured here: with 0.5.0 published 2h ago and 0.4.0 published 20h ago, a clean profile got 0.3.2 (30h old), reproduced independently on two machines. `npx <pkg>` goes through npm and gets `latest` immediately. If you ship a plugin, publish at least a day before you announce.
+5. **A loaded hook bridge is not proof of enforcement.** Unsupported events can be skipped, matchers can select no DSH tool, Windows can lose a native exit 2, and `{"continue":false}` is not consumed. Run the disposable deny canary above on the exact host and DSH version that will enforce policy.
 
 `npx dsh-movein` automates every row of this table that can be automated, with a dry run first and a migration diff report for the rules that cannot map.
 
@@ -114,6 +128,6 @@ Three details that bite. The project root is the nearest ancestor containing `.g
 - 全局 CLAUDE.md 链接为 `~/.dsh/AGENTS.md` 即可
 - SKILL.md 格式原样兼容，但 `.claude/skills` 不是 DSH 的默认技能根，需要落到 `~/.dsh/skills`
 - `.mcp.json` 可无损机械转换，工具名 `mcp__server__tool` 两边完全一致
-- hooks 有官方桥（30 个事件映射 7 个），权限规则无原生对应但可在 `tools/pre-execute` 桥接
+- hooks 有官方桥（30 个事件映射 7 个），但加载成功不等于强制成功：Windows 原生子进程 exit 2 可能丢失，`continue:false` 当前不会停止运行，必须用无害 canary 实测
 - 子代理无法直接导入，转成技能最现实；会话文件格式 v0 无兼容承诺，绝对不要手写
-- 三个坑：解析不到的包会让 dsh 启动直接失败、周边包 npm 标签落后于核心、hook-protocol 是宿主不带的 peer 依赖
+- 五个坑还包括：解析不到的包会让 dsh 启动直接失败、周边包 npm 标签落后于核心、hook-protocol 是宿主不带的 peer 依赖、新版本有 24 小时安装冷却、hook 配置接好仍不能证明强制生效

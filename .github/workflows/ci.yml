@@ -3,17 +3,85 @@ on:
   push:
     branches: [main]
   pull_request:
+
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 20
+          package-manager-cache: false
       - run: npm ci
       - run: npm test
       - run: node plugin/test.mjs
+
+  platform-test:
+    name: platform-test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.19.0
+          package-manager-cache: false
+      - run: npm ci
+      - run: npm test
+      - run: node plugin/test.mjs
+
+  opencode-compat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.19.0
+          package-manager-cache: false
+      - run: npm ci
+      - name: OpenCode 1.18.23 loads the migrated setup
+        run: npm exec --yes --package=opencode-ai@1.18.23 -- node scripts/opencode-live-smoke.mjs
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.19.0
+          package-manager-cache: false
+      - run: npm ci --ignore-scripts
+      - name: production dependency audit
+        run: |
+          npm audit --omit=dev --audit-level=high
+          npm audit --omit=dev --audit-level=high --prefix packages/claude-to-opencode
+
+  codeql:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: javascript-typescript
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.19.0
+          package-manager-cache: false
+      - run: npm ci
+      - run: npm run build
+      - uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:javascript-typescript
 
   # Boot the real DSH host with this checkout installed as a plugin, so a DSH
   # release that breaks the plugin contract fails CI instead of users.
@@ -21,10 +89,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
+          package-manager-cache: false
       - run: npm ci
       - run: npm install -g pnpm
       - name: install dsh and this plugin into a scratch profile
@@ -57,3 +126,19 @@ jobs:
           mkdir -p "$HOME/.claude/skills/probe"
           printf -- '---\nname: probe\ndescription: d\n---\nbody\n' > "$HOME/.claude/skills/probe/SKILL.md"
           node bin/cli.mjs | grep -q "skill probe"
+
+  ci-gate:
+    if: always()
+    needs: [test, platform-test, opencode-compat, security, codeql, dsh-boot-smoke]
+    runs-on: ubuntu-latest
+    steps:
+      - name: require every CI lane to succeed
+        env:
+          TEST_RESULT: ${{ needs.test.result }}
+          PLATFORM_RESULT: ${{ needs.platform-test.result }}
+          OPENCODE_RESULT: ${{ needs.opencode-compat.result }}
+          SECURITY_RESULT: ${{ needs.security.result }}
+          CODEQL_RESULT: ${{ needs.codeql.result }}
+          DSH_BOOT_RESULT: ${{ needs.dsh-boot-smoke.result }}
+        run: |
+          node -e "const names = ['TEST_RESULT', 'PLATFORM_RESULT', 'OPENCODE_RESULT', 'SECURITY_RESULT', 'CODEQL_RESULT', 'DSH_BOOT_RESULT']; const failed = names.filter((name) => process.env[name] !== 'success'); if (failed.length) { console.error(failed.map((name) => name + '=' + process.env[name]).join('\\n')); process.exit(1); }"
