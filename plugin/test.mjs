@@ -1,6 +1,18 @@
 import assert from 'node:assert'
+import fs from 'node:fs'
 import { performance } from 'node:perf_hooks'
 import { apply, parseRule, ruleMatches } from './index.js'
+
+const manifest = JSON.parse(fs.readFileSync(new URL('./package.json', import.meta.url), 'utf8'))
+assert.strictEqual(manifest.engines.node, '>=22.13.0')
+assert.deepStrictEqual(manifest.os, ['darwin', 'linux', 'win32'])
+assert.strictEqual(manifest.dsh.compatibility.dsh, '>=0.1.0-rc.8 <0.2.0')
+assert.deepStrictEqual(manifest.dsh.compatibility.dshReleases, {
+  '0.1.0-rc.8': 'compatible',
+  '0.1.1-rc.1': 'compatible',
+  '0.1.1-rc.2': 'compatible',
+})
+assert.deepStrictEqual(manifest.dsh.compatibility.profiles, ['web'])
 
 // matcher basics
 assert.ok(ruleMatches(parseRule('Bash(npm run test:*)'), 'terminal_open', { command: 'npm run test -- --watch' }))
