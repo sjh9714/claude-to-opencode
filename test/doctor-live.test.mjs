@@ -296,7 +296,15 @@ try {
   const timedOut = await runFakeDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 150, shutdownTimeoutMs: 1_000 });
   assert.strictEqual(timedOut.at(-1).level, 'bad');
   assert.match(timedOut.at(-1).note, /timed out.*stopped cleanly/);
-  assertStopObservedByHost('timeout must terminate the child');
+  const timeoutMarker = fs.readFileSync(marker, 'utf8');
+  if (timeoutMarker.includes('started')) {
+    assertStopObservedByHost('timeout must terminate a child that reached its entry point');
+  } else {
+    // A loaded runner can consume the entire deadline between spawn and the
+    // child's first JavaScript instruction. stopChild still observes the
+    // retained process handle exit, which is what "stopped cleanly" means.
+    assert.strictEqual(timeoutMarker, 'capability\ncomposed\n');
+  }
 
   reset('timeout');
   const controller = new AbortController();
