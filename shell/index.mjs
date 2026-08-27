@@ -7,7 +7,6 @@ import { scan } from '../lib/scan.mjs'
 import { scanOpenCode } from '../lib/opencode.mjs'
 import { planActions, applyActions } from '../lib/apply.mjs'
 import { renderReport } from '../lib/report.mjs'
-import { claimStarPrompt } from '../lib/star.mjs'
 import { registerMoveinRoute } from './routes.mjs'
 
 export const name = 'dsh-movein'
@@ -36,7 +35,9 @@ function definition(name, description, scanner) {
       const scanResult = scanner({ project })
       const actions = planActions(scanResult, { copy: args.copy === true })
       if (args.apply === true) applyActions(actions, { scanResult })
-      const starPrompt = args.apply === true && claimStarPrompt(scanResult.dshHome, actions)
+      const starPrompt = args.apply === true
+        && actions.some((action) => action.status === 'done')
+        && !actions.some((action) => action.status === 'error')
       return renderReport(scanResult, actions, { apply: args.apply === true, starPrompt })
     },
   }

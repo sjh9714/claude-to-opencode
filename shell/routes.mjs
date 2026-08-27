@@ -4,7 +4,6 @@ import { scanCodex } from '../lib/codex.mjs';
 import { scanOpenCode } from '../lib/opencode.mjs';
 import { planActions, applyActions } from '../lib/apply.mjs';
 import { renderReport } from '../lib/report.mjs';
-import { claimStarPrompt } from '../lib/star.mjs';
 
 export const CATEGORY_IDS = ['instructions', 'skills', 'commands', 'agents', 'hooks', 'permissions', 'mcp'];
 
@@ -56,7 +55,9 @@ export function runMovein({ project, origin = 'claude', apply = false, copy = fa
   const scanResult = filterScanResult(raw, include);
   const actions = planActions(scanResult, { copy });
   if (apply) applyActions(actions, { scanResult });
-  const starPrompt = apply && claimStarPrompt(scanResult.dshHome, actions, scanOptions.starRepository);
+  const starPrompt = apply
+    && actions.some((action) => action.status === 'done')
+    && !actions.some((action) => action.status === 'error');
   return {
     ok: !actions.some((action) => action.status === 'error'),
     applied: apply,

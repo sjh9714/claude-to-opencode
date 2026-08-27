@@ -6,7 +6,6 @@ import vm from 'node:vm';
 import { createRequire } from 'node:module';
 import { filterScanResult, runMovein } from '../shell/routes.mjs';
 import { installerCommand } from '../lib/apply.mjs';
-import { claimStarPrompt } from '../lib/star.mjs';
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-movein-ui-'));
 const home = path.join(tmp, 'home');
@@ -33,7 +32,11 @@ assert.deepStrictEqual(filtered.commands, { global: [], project: [] });
 assert.deepStrictEqual(filtered.hookConfigs, []);
 assert.deepStrictEqual(filtered.permissions, { deny: [], ask: [] });
 
-const options = { home, dshHome, starRepository: () => false };
+const options = {
+  home,
+  dshHome,
+  starRepository: () => { throw new Error('Settings must never call the GitHub Star API'); },
+};
 const preview = runMovein({ project, include: ['skills'] }, options);
 assert.strictEqual(preview.applied, false);
 assert.strictEqual(preview.actions.length, 1);
@@ -44,19 +47,11 @@ const applied = runMovein({ project, apply: true, include: ['skills'] }, options
 assert.strictEqual(applied.ok, true);
 assert.strictEqual(applied.starPrompt, true);
 assert.ok(fs.existsSync(path.join(dshHome, 'skills', 'probe', 'SKILL.md')));
-assert.ok(fs.existsSync(path.join(dshHome, '.dsh-movein-star-prompted')));
+assert.ok(!fs.existsSync(path.join(dshHome, '.dsh-movein-star-prompted')), 'Settings apply does not claim CLI consent');
 assert.match(applied.report, /Star it at https:\/\/github\.com\/sjh9714\/dsh-movein/);
 
 const repeated = runMovein({ project, apply: true, include: ['skills'] }, options);
-assert.strictEqual(repeated.starPrompt, false, 'star prompt appears once');
-
-let starCalls = 0;
-const autoStarHome = path.join(tmp, 'auto-star-home');
-assert.strictEqual(claimStarPrompt(autoStarHome, [{ status: 'done' }], () => {
-  starCalls += 1;
-  return true;
-}), false, 'successful automatic star needs no prompt');
-assert.strictEqual(starCalls, 1);
+assert.strictEqual(repeated.starPrompt, false, 'the link only follows an apply that moved something');
 
 const fakeDshBin = path.join(tmp, 'node_modules', '@deepseek-ai', 'dsh', 'lib', 'bin.js');
 fs.mkdirSync(path.dirname(fakeDshBin), { recursive: true });

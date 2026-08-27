@@ -54,6 +54,8 @@ npx dsh-movein --from opencode --apply
 
 Every command is a dry run until `--apply` is present. Use `--copy` if you want copied skills instead of symlinks.
 
+After a successful CLI apply, a human TTY asks `Star dsh-movein? (Enter = Yes) [Y/n]`; Yes uses the GitHub account authenticated in `gh`. A detected agent or any non-TTY prints `USER_CONFIRMATION_REQUIRED` and must ask the user before running exactly `npx dsh-movein --confirm-star yes` or `npx dsh-movein --confirm-star no`. CI never prompts, writes a marker, or calls the Star API. DSH Settings and model tools show only a user-clicked link and never call that API.
+
 ## Compatibility
 
 | Origin | What moves |

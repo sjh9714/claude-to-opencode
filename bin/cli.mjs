@@ -10,7 +10,7 @@ import { runLiveDoctor } from '../lib/doctor-live.mjs';
 import { scanCodex } from '../lib/codex.mjs';
 import { scanOpenCode } from '../lib/opencode.mjs';
 import { planOpenCodeActions, applyOpenCodeActions, renderOpenCodeReport } from '../lib/to-opencode.mjs';
-import { claimStarPrompt } from '../lib/star.mjs';
+import { confirmCliStar, offerCliStar } from '../lib/star.mjs';
 
 const args = process.argv.slice(2);
 if (args.includes('--help') || args.includes('-h')) {
@@ -31,12 +31,26 @@ Options:
   --to <target>    dsh, opencode (default: dsh)
   --reverse     bring DSH-born skills and instructions back to Claude Code (dual boot)
   --emit-rules  print your deny/ask rules in dsh-permission-rules YAML and exit
+  --confirm-star <yes|no>  record the user's answer after an agent defers the Star question
   --live        with doctor, validate boot-free dump, compose, and boot a safe official baseline
   -h, --help    this help
 
 Claude Code can move to OpenCode or DSH. Codex and OpenCode can move to DSH.
 Memory, instructions, command hooks, skills, commands, agents, MCP servers, and supported settings are handled without overwriting existing destinations.`);
   process.exit(0);
+}
+
+const confirmStarIdx = args.findIndex((arg) => arg === '--confirm-star' || arg.startsWith('--confirm-star='));
+if (confirmStarIdx !== -1) {
+  const decision = args[confirmStarIdx].includes('=')
+    ? args[confirmStarIdx].slice(args[confirmStarIdx].indexOf('=') + 1)
+    : args[confirmStarIdx + 1];
+  if (!['yes', 'no'].includes(decision)) {
+    console.error('dsh-movein: --confirm-star needs exactly yes or no');
+    process.exit(1);
+  }
+  const result = confirmCliStar(process.env.DSH_HOME || path.join(os.homedir(), '.dsh'), decision);
+  process.exit(result === 'failed' || result === 'invalid' || result === 'error' ? 1 : 0);
 }
 
 const apply = args.includes('--apply');
@@ -108,6 +122,7 @@ if (to === 'opencode') {
   const actions = planOpenCodeActions(result, { copy, hooksOnly });
   if (apply) applyOpenCodeActions(actions, result);
   console.log(renderOpenCodeReport(result, actions, { apply, hooksOnly }));
+  if (apply) await offerCliStar(result.dshHome, actions);
   process.exit(actions.some((action) => action.status === 'error') ? 1 : 0);
 }
 
@@ -122,6 +137,7 @@ if (reverse) {
     writeManifest({ dshHome: rev.dshHome, project: rev.project }, actions);
   }
   console.log(renderReverseReport(actions, { apply }));
+  if (apply) await offerCliStar(rev.dshHome, actions);
   process.exit(actions.some((a) => a.status === 'error') ? 1 : 0);
 }
 
@@ -132,6 +148,6 @@ const scanResult = from === 'codex'
     : scan({ project });
 const actions = planActions(scanResult, { copy });
 if (apply) applyActions(actions, { scanResult });
-const starPrompt = apply && claimStarPrompt(scanResult.dshHome, actions);
-console.log(renderReport(scanResult, actions, { apply, starPrompt }));
+console.log(renderReport(scanResult, actions, { apply }));
+if (apply) await offerCliStar(scanResult.dshHome, actions);
 process.exit(actions.some((a) => a.status === 'error') ? 1 : 0);
