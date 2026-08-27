@@ -66,7 +66,7 @@ for (const pkg of ['@deepseek-ai/dsh-hooks-claude-code', '@deepseek-ai/dsh-hook-
 }
 
 const run = (extra = []) =>
-  execFileSync(process.execPath, [cli, project, ...extra], { env: { ...process.env, HOME: home, DSH_HOME: '' }, encoding: 'utf8' });
+  execFileSync(process.execPath, [cli, project, ...extra], { env: { ...process.env, HOME: home, USERPROFILE: home, DSH_HOME: '' }, encoding: 'utf8' });
 
 // 1. dry run writes nothing, diff report present
 const dry = run();
@@ -264,7 +264,7 @@ assert.match(patch2, /keep-me/, 'user rows preserved');
   fs.writeFileSync(path.join(born, 'SKILL.md'), '---\nname: dsh-native-skill\ndescription: d\n---\nb');
   const reverseApply = [cli, project, '--reverse', '--apply', ...(process.platform === 'win32' ? ['--copy'] : [])];
   const revOut = execFileSync(process.execPath, reverseApply,
-    { env: { ...process.env, HOME: home, DSH_HOME: '' }, encoding: 'utf8' });
+    { env: { ...process.env, HOME: home, USERPROFILE: home, DSH_HOME: '' }, encoding: 'utf8' });
   assert.match(revOut, /skill dsh-native-skill/);
   assert.match(revOut, /skill my-skill\s*\.+\s*moved in from Claude Code originally/);
   assert.match(revOut, /AGENTS\.md \(global\)\s*\.+\s*already points into ~\/.claude/);
@@ -273,7 +273,7 @@ assert.match(patch2, /keep-me/, 'user rows preserved');
   assert.ok(manifest2.at(-1).moved.some((m) => m.label === 'skill dsh-native-skill'), 'reverse move recorded');
   // idempotent
   const revOut2 = execFileSync(process.execPath, [cli, project, '--reverse'],
-    { env: { ...process.env, HOME: home, DSH_HOME: '' }, encoding: 'utf8' });
+    { env: { ...process.env, HOME: home, USERPROFILE: home, DSH_HOME: '' }, encoding: 'utf8' });
   assert.match(revOut2, /skill dsh-native-skill\s*\.+.*already exists/);
 }
 
@@ -287,7 +287,7 @@ assert.match(patch2, /keep-me/, 'user rows preserved');
   let doc = '', code = 0;
   try {
     doc = execFileSync(process.execPath, [cli, 'doctor', project],
-      { env: { ...process.env, HOME: home, DSH_HOME: '' }, encoding: 'utf8' });
+      { env: { ...process.env, HOME: home, USERPROFILE: home, DSH_HOME: '' }, encoding: 'utf8' });
   } catch (e) { doc = e.stdout; code = e.status; }
   assert.strictEqual(code, 1, 'doctor exits 1 when a check fails');
   assert.match(doc, /✗ skill risky-skill, unquoted ": "/, 'moved silent-drop skill flagged');
@@ -306,7 +306,7 @@ assert.match(patch2, /keep-me/, 'user rows preserved');
   const patchPath = path.join(home, '.dsh', 'cordis.patch.yml');
   fs.writeFileSync(patchPath, 'corrupted by hand\n');
   const out7 = execFileSync(process.execPath, [cli, 'restore'],
-    { env: { ...process.env, HOME: home, DSH_HOME: '' }, encoding: 'utf8' });
+    { env: { ...process.env, HOME: home, USERPROFILE: home, DSH_HOME: '' }, encoding: 'utf8' });
   assert.match(out7, /restored cordis\.patch\.yml from/);
   const restored = fs.readFileSync(patchPath, 'utf8');
   assert.match(restored, /keep-me/, 'pre-overwrite content restored');
@@ -316,7 +316,7 @@ assert.match(patch2, /keep-me/, 'user rows preserved');
 // 9. --emit-rules: dsh-permission-rules YAML from CC deny/ask rules
 {
   const rules = execFileSync(process.execPath, [cli, project, '--emit-rules'],
-    { env: { ...process.env, HOME: home, DSH_HOME: '' }, encoding: 'utf8' });
+    { env: { ...process.env, HOME: home, USERPROFILE: home, DSH_HOME: '' }, encoding: 'utf8' });
   assert.match(rules, /REVIEW BEFORE USE/);
   assert.match(rules, /tools: \[bash, pwsh\], params: \{ command: "rm -rf\*" \}/, 'Bash glob mapped');
   assert.match(rules, /tools: \[read\], paths: \["\*secrets\*"\]/, 'Read path mapped');
@@ -364,7 +364,7 @@ assert.match(patch2, /keep-me/, 'user rows preserved');
   fs.mkdirSync(proj2, { recursive: true });
   const runC = (extra = []) =>
     execFileSync(process.execPath, [cli, proj2, '--from', 'codex', ...extra],
-      { env: { ...process.env, HOME: home2, DSH_HOME: '' }, encoding: 'utf8' });
+      { env: { ...process.env, HOME: home2, USERPROFILE: home2, DSH_HOME: '' }, encoding: 'utf8' });
 
   const dryC = runC();
   assert.match(dryC, /Codex -> DeepSeek Harness moving estimate/, 'codex origin in header');
@@ -388,7 +388,7 @@ assert.match(patch2, /keep-me/, 'user rows preserved');
   const home3 = path.join(tmp, 'home-empty');
   fs.mkdirSync(home3, { recursive: true });
   const dryE = execFileSync(process.execPath, [cli, proj2, '--from', 'codex'],
-    { env: { ...process.env, HOME: home3, DSH_HOME: '' }, encoding: 'utf8' });
+    { env: { ...process.env, HOME: home3, USERPROFILE: home3, DSH_HOME: '' }, encoding: 'utf8' });
   assert.match(dryE, /Is Codex set up on this machine \(~\/.codex\)\?/);
 }
 

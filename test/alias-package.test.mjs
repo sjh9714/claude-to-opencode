@@ -17,7 +17,7 @@ const memory = path.join(home, '.claude', 'projects', project.replace(/[^A-Za-z0
 fs.mkdirSync(path.dirname(memory), { recursive: true });
 fs.writeFileSync(memory, '# Claude auto memory\n');
 
-const env = { ...process.env, HOME: home, XDG_CONFIG_HOME: path.join(home, '.config') };
+const env = { ...process.env, HOME: home, USERPROFILE: home, XDG_CONFIG_HOME: path.join(home, '.config') };
 const dry = spawnSync(process.execPath, [cli, project], { env, encoding: 'utf8' });
 assert.strictEqual(dry.status, 0);
 assert.match(dry.stdout, /claude-to-opencode · Claude Code/);
