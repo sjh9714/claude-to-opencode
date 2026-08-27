@@ -1,4 +1,5 @@
 import assert from 'node:assert'
+import { performance } from 'node:perf_hooks'
 import { apply, parseRule, ruleMatches } from './index.js'
 
 // matcher basics
@@ -11,6 +12,20 @@ assert.ok(!ruleMatches(parseRule('Read(*secrets*)'), 'read', { file_path: '/app/
 assert.ok(ruleMatches(parseRule('mcp__github__create_issue'), 'mcp__github__create_issue', {}))
 assert.ok(!ruleMatches(parseRule('Bash'), 'read', {}))
 assert.ok(!ruleMatches(parseRule('WebFetch'), 'read', {}), 'unknown CC tool never matches DSH tools')
+
+// Preserve the accepted rule grammar without the overlapping repetitions that
+// made a late failure exponentially expensive.
+assert.deepStrictEqual(
+  (({ tool, spec }) => ({ tool, spec }))(parseRule('Bash(foo)(bar)')),
+  { tool: 'Bash', spec: 'foo)(bar' },
+)
+assert.strictEqual(parseRule('__-'), null)
+assert.strictEqual(parseRule('Bash(line\nbreak)'), null)
+assert.strictEqual(parseRule('___-').tool, '___-')
+const adversarial = `A${'__x'.repeat(50_000)}!`
+const parseStarted = performance.now()
+assert.strictEqual(parseRule(adversarial), null)
+assert.ok(performance.now() - parseStarted < 1_000, 'malformed rules must be rejected in linear time')
 
 // gate wiring through a fake ctx
 let handler = null

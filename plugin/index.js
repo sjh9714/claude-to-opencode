@@ -5,11 +5,47 @@
 
 export const name = 'dsh-movein-permissions'
 
+const isAsciiLetter = (code) => (code >= 65 && code <= 90) || (code >= 97 && code <= 122)
+const isToolBaseChar = (code) => isAsciiLetter(code) || (code >= 48 && code <= 57) || code === 95
+
+function validToolName(tool) {
+  if (!tool || (!isAsciiLetter(tool.charCodeAt(0)) && tool.charCodeAt(0) !== 95)) return false
+  let hasMcpSegment = false
+  for (let index = 1; index < tool.length; index += 1) {
+    const code = tool.charCodeAt(index)
+    if (isToolBaseChar(code)) {
+      // A hyphen is valid only after a complete "__" segment delimiter. The
+      // first underscore cannot double as both the required first character
+      // and the delimiter, matching the previous rule grammar exactly.
+      if (code === 95 && index >= 2 && tool.charCodeAt(index - 1) === 95) hasMcpSegment = true
+      continue
+    }
+    if (code !== 45 || !hasMcpSegment) return false
+  }
+  return true
+}
+
+function splitRule(raw) {
+  const text = String(raw).trim()
+  if (!text) return null
+  let open = -1
+  for (let index = 0; index < text.length; index += 1) {
+    const code = text.charCodeAt(index)
+    if (code === 10 || code === 13 || code === 0x2028 || code === 0x2029) return null
+    if (code === 40 && open === -1) open = index
+  }
+  const hasSpec = open !== -1
+  if (hasSpec && text.charCodeAt(text.length - 1) !== 41) return null
+  const tool = hasSpec ? text.slice(0, open) : text
+  if (!validToolName(tool)) return null
+  return { tool, spec: hasSpec ? text.slice(open + 1, -1) : null }
+}
+
 // "Tool" or "Tool(spec)" where Tool is a CC tool name or mcp__server__tool.
 export function parseRule(raw) {
-  const m = /^([A-Za-z_][A-Za-z0-9_]*(?:__[A-Za-z0-9_-]+)*)(?:\((.*)\))?$/.exec(String(raw).trim())
-  if (!m) return null
-  return { tool: m[1], spec: m[2] ?? null, re: m[2] != null ? specToRegex(m[2]) : null }
+  const parsed = splitRule(raw)
+  if (!parsed) return null
+  return { ...parsed, re: parsed.spec != null ? specToRegex(parsed.spec) : null }
 }
 
 // CC spec semantics: trailing ':*' is a prefix match; '*' is a wildcard.
