@@ -1,6 +1,6 @@
 {
   "name": "dsh-movein-permissions",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Fine grained per tool permission rules for DeepSeek Harness (DSH). deny/ask lists in Claude Code rule syntax, enforced at the tools/pre-execute gate. Works standalone.",
   "license": "MIT",
   "type": "module",
@@ -25,8 +25,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sjh9714/claude-to-opencode.git",
+    "url": "https://github.com/sjh9714/dsh-movein.git",
     "directory": "plugin"
+  },
+  "homepage": "https://github.com/sjh9714/dsh-movein/tree/main/plugin#readme",
+  "bugs": {
+    "url": "https://github.com/sjh9714/dsh-movein/issues"
   },
   "dsh": {
     "bundle": {
