@@ -1,6 +1,6 @@
 {
   "name": "dsh-movein-permissions",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Fine grained per tool permission rules for DeepSeek Harness (DSH). deny/ask lists in Claude Code rule syntax, enforced at the tools/pre-execute gate. Works standalone.",
   "license": "MIT",
   "type": "module",
