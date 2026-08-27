@@ -58,7 +58,7 @@ Every command is a dry run until `--apply` is present. Use `--copy` if you want 
 
 | Origin | What moves |
 | --- | --- |
-| Claude Code | Global and project instructions, skills, slash commands, MCP servers, supported hooks, subagents, and mapped permission rules |
+| Claude Code | Global and project instructions, skills, slash commands, MCP servers, the supported hook configuration subset, subagents, and mapped permission rules |
 | Codex | Global `AGENTS.md`, custom prompts, and stdio MCP servers from `config.toml` |
 | OpenCode | Instructions, skills, commands, agents, and local or remote MCP servers from V1 or V2 JSON and JSONC config |
 
@@ -105,7 +105,7 @@ npx dsh-movein doctor
 npx dsh-movein doctor --live
 ```
 
-`doctor` checks recorded destinations, skill frontmatter, required packages, and supported Claude Code hook mappings.
+`doctor` checks recorded destinations, skill frontmatter, required packages, and a matching Claude Code hook bridge row for every settings file that contains supported command hooks. It also names hook configurations that cannot enforce what they appear to enforce: events outside DSH's seven mapped events, non-command handlers, uppercase Claude tool matcher alternatives, the current `{"continue":false}` control-flow gap, and the Windows PowerShell native-child exit-code gap. It never executes a user hook. Matching bridge rows and resolvable packages prove wiring only; `doctor` prints a disposable deny-canary reminder before you rely on hooks as a policy boundary.
 `doctor --live` never activates the migrated configuration. It requires an already-installed `@deepseek-ai/dsh` `0.1.1-rc.2` or newer and first proves the boot-free `web --dump-config` contract in a separate disposable snapshot containing only the official `@deepseek-ai/dsh-base` and `@deepseek-ai/dsh-web-app` bundles and empty patch layers. Only after that succeeds does it ask DSH to compose the active migration snapshot. Both dumps must return a bounded, non-empty config with the expected sectioned YAML-list shape; their output is discarded and never printed. It then resets the active snapshot to the same official base/web-only configuration, boots it on an OS-assigned loopback port, and verifies its HTML boot wire and one same-origin JavaScript bundle. Static `doctor` checks the migrated package references separately.
 
 No DSH download, model, or API credential is used. Child processes receive only a small OS, `PATH`, and locale allowlist; home, application-data, XDG, cache, and temporary paths all point inside the disposable snapshot. Shutdown signals the retained direct child handle and success requires observing that child exit and the loopback port become unreachable. It does not issue PID-tree kill commands. If child termination cannot be confirmed, the snapshot is preserved and the live check fails. Live checking requires the DSH-supported Node 22.19+ or 24+ runtime; Node 23 is rejected before any child starts.
@@ -117,6 +117,10 @@ dsh --profile web --dump-config | grep -E "mcp-|cc-hooks"
 ```
 
 Open a new DSH session after moving skills because the skill catalog is captured per session.
+
+### Hook enforcement is not migration parity
+
+Current DSH hook bridges have upstream enforcement gaps. On Windows, a command that launches a native interpreter can lose its exit code through PowerShell, so an intended exit-2 deny can fail open. When the command shape permits it, explicitly propagate the native status with `; exit $LASTEXITCODE`. On every platform, DSH currently records `{"continue":false}` but does not halt the run. Unsupported events outside the mapped seven are skipped during parsing. See [the measured hook limits and safe canary procedure](docs/compat.md#verify-hook-enforcement-after-moving) before treating a moved hook as a security boundary.
 
 ## Claude Code dual boot
 

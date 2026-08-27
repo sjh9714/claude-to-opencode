@@ -70,7 +70,7 @@ fs.writeFileSync(path.join(globalOpenCode, 'opencode.jsonc'), [
   '',
 ].join('\n'));
 
-const env = { ...process.env, HOME: home, XDG_CONFIG_HOME: path.join(home, '.config') };
+const env = { ...process.env, HOME: home, USERPROFILE: home, XDG_CONFIG_HOME: path.join(home, '.config') };
 const run = (extra = []) => execFileSync(process.execPath, [cli, project, '--from', 'claude', '--to', 'opencode', ...extra], { env, encoding: 'utf8' });
 
 const dry = run();
@@ -169,7 +169,7 @@ fs.mkdirSync(badProject, { recursive: true });
 fs.writeFileSync(path.join(badHome, '.claude', 'commands', 'blocked.md'), 'Must not copy\n');
 fs.writeFileSync(path.join(badProject, 'opencode.jsonc'), '{ invalid jsonc');
 const blocked = spawnSync(process.execPath, [cli, badProject, '--to', 'opencode', '--apply'], {
-  env: { ...process.env, HOME: badHome, XDG_CONFIG_HOME: path.join(badHome, '.config') },
+  env: { ...process.env, HOME: badHome, USERPROFILE: badHome, XDG_CONFIG_HOME: path.join(badHome, '.config') },
   encoding: 'utf8',
 });
 assert.strictEqual(blocked.status, 1);
@@ -180,7 +180,7 @@ fs.writeFileSync(path.join(badHome, '.claude', 'settings.json'), JSON.stringify(
   hooks: { PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: 'check.sh' }] }] },
 }));
 const hookThroughBadConfig = spawnSync(process.execPath, [cli, badProject, '--to', 'opencode', '--hooks-only', '--apply'], {
-  env: { ...process.env, HOME: badHome, XDG_CONFIG_HOME: path.join(badHome, '.config') },
+  env: { ...process.env, HOME: badHome, USERPROFILE: badHome, XDG_CONFIG_HOME: path.join(badHome, '.config') },
   encoding: 'utf8',
 });
 assert.strictEqual(hookThroughBadConfig.status, 0);
@@ -194,7 +194,7 @@ fs.mkdirSync(path.join(wrongTypeProject, '.claude', 'rules'), { recursive: true 
 fs.writeFileSync(path.join(wrongTypeProject, '.claude', 'rules', 'keep.md'), '# Keep me\n');
 fs.writeFileSync(path.join(wrongTypeProject, 'opencode.json'), '{ "instructions": "keep-existing" }\n');
 const wrongType = spawnSync(process.execPath, [cli, wrongTypeProject, '--to', 'opencode', '--apply'], {
-  env: { ...process.env, HOME: wrongTypeHome, XDG_CONFIG_HOME: path.join(wrongTypeHome, '.config') },
+  env: { ...process.env, HOME: wrongTypeHome, USERPROFILE: wrongTypeHome, XDG_CONFIG_HOME: path.join(wrongTypeHome, '.config') },
   encoding: 'utf8',
 });
 assert.strictEqual(wrongType.status, 1);
@@ -209,7 +209,7 @@ fs.writeFileSync(path.join(customHome, '.claude', 'settings.json'), JSON.stringi
 fs.mkdirSync(path.join(customHome, 'shared-memory'), { recursive: true });
 fs.writeFileSync(path.join(customHome, 'shared-memory', 'MEMORY.md'), '# Custom memory\n');
 const custom = spawnSync(process.execPath, [cli, customProject, '--to', 'opencode', '--apply'], {
-  env: { ...process.env, HOME: customHome, XDG_CONFIG_HOME: path.join(customHome, '.config') },
+  env: { ...process.env, HOME: customHome, USERPROFILE: customHome, XDG_CONFIG_HOME: path.join(customHome, '.config') },
   encoding: 'utf8',
 });
 assert.strictEqual(custom.status, 0);
@@ -229,7 +229,7 @@ const sharedMemory = path.join(worktreeHome, sharedMemoryRef.slice(2));
 fs.mkdirSync(path.dirname(sharedMemory), { recursive: true });
 fs.writeFileSync(sharedMemory, '# Shared worktree memory\n');
 const worktree = spawnSync(process.execPath, [cli, worktreeProject, '--to', 'opencode', '--apply'], {
-  env: { ...process.env, HOME: worktreeHome, XDG_CONFIG_HOME: path.join(worktreeHome, '.config') },
+  env: { ...process.env, HOME: worktreeHome, USERPROFILE: worktreeHome, XDG_CONFIG_HOME: path.join(worktreeHome, '.config') },
   encoding: 'utf8',
 });
 assert.strictEqual(worktree.status, 0);
@@ -246,7 +246,7 @@ const disabledMemory = path.join(disabledHome, '.claude', 'projects', disabledPr
 fs.mkdirSync(path.dirname(disabledMemory), { recursive: true });
 fs.writeFileSync(disabledMemory, '# Disabled memory\n');
 const disabled = spawnSync(process.execPath, [cli, disabledProject, '--to', 'opencode'], {
-  env: { ...process.env, HOME: disabledHome, XDG_CONFIG_HOME: path.join(disabledHome, '.config') },
+  env: { ...process.env, HOME: disabledHome, USERPROFILE: disabledHome, XDG_CONFIG_HOME: path.join(disabledHome, '.config') },
   encoding: 'utf8',
 });
 assert.strictEqual(disabled.status, 0);

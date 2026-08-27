@@ -189,6 +189,17 @@ const assertCapabilityStopped = () => {
   assert.strictEqual(fs.readFileSync(marker, 'utf8'), 'capability\n', 'capability failure must block active config dump and web boot');
   assert.ok(!fs.existsSync(mcpMarker), 'capability failure must never activate migrated config');
 };
+const assertStopObservedByHost = (message) => {
+  const text = fs.readFileSync(marker, 'utf8');
+  if (process.platform === 'win32') {
+    // Windows force-terminates a child for SIGTERM instead of delivering the
+    // child's JavaScript signal handler. runLiveDoctor separately requires the
+    // retained handle to exit and its loopback port to be released.
+    assert.match(text, /started/, message);
+  } else {
+    assert.match(text, /stopped/, message);
+  }
+};
 const liveSnapshotNames = () => new Set(fs.readdirSync(os.tmpdir()).filter((name) => (
   name.startsWith('dsh-movein-live-') && name !== path.basename(root)
 )));
@@ -213,7 +224,12 @@ try {
   assert.match(success[0].note, /boot-free config-dump capability.*validated and discarded/);
   assert.match(success[1].note, /composed without activation.*validated and discarded/);
   assert.match(success[2].note, /official base\/web-only baseline.*valid __DSH_BOOT__.*JavaScript 200.*port was released/);
-  assert.match(fs.readFileSync(marker, 'utf8'), /capability\ncomposed\nstarted\nasset fetched\nstopped/);
+  assert.match(
+    fs.readFileSync(marker, 'utf8'),
+    process.platform === 'win32'
+      ? /capability\ncomposed\nstarted\nasset fetched/
+      : /capability\ncomposed\nstarted\nasset fetched\nstopped/,
+  );
   assert.ok(!fs.existsSync(mcpMarker), 'active migrated MCP command must never execute');
   assert.doesNotMatch(JSON.stringify(success), /inline-secret-never-send/, 'captured composition output must never be reported');
   assert.strictEqual(fs.readFileSync(path.join(profile, 'cordis.yml'), 'utf8'), 'original profile root\n', 'live checks must not rewrite the source profile');
@@ -267,7 +283,12 @@ try {
     const result = await runFakeDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 1_000, shutdownTimeoutMs: 500 });
     assert.deepStrictEqual(result.map((check) => check.level), ['ok', 'bad', 'ok']);
     assert.match(result[1].note, expected);
-    assert.match(fs.readFileSync(marker, 'utf8'), /capability\ncomposed\nstarted\nasset fetched\nstopped/);
+    assert.match(
+      fs.readFileSync(marker, 'utf8'),
+      process.platform === 'win32'
+        ? /capability\ncomposed\nstarted\nasset fetched/
+        : /capability\ncomposed\nstarted\nasset fetched\nstopped/,
+    );
     assert.ok(!fs.existsSync(mcpMarker), 'an invalid active dump must still never activate migrated MCP');
   }
 
@@ -275,7 +296,7 @@ try {
   const timedOut = await runFakeDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 150, shutdownTimeoutMs: 1_000 });
   assert.strictEqual(timedOut.at(-1).level, 'bad');
   assert.match(timedOut.at(-1).note, /timed out.*stopped cleanly/);
-  assert.match(fs.readFileSync(marker, 'utf8'), /stopped/, 'timeout must terminate the child');
+  assertStopObservedByHost('timeout must terminate the child');
 
   reset('timeout');
   const controller = new AbortController();
@@ -289,13 +310,13 @@ try {
   clearInterval(abortPoll);
   assert.strictEqual(interrupted.at(-1).level, 'bad');
   assert.match(interrupted.at(-1).note, /interrupted by test signal.*stopped cleanly/);
-  assert.match(fs.readFileSync(marker, 'utf8'), /stopped/, 'abort signal must terminate the child');
+  assertStopObservedByHost('abort signal must terminate the child');
 
   reset('http-500');
   const httpFailure = await runFakeDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 750, shutdownTimeoutMs: 1_000 });
   assert.strictEqual(httpFailure.at(-1).level, 'bad');
   assert.match(httpFailure.at(-1).note, /last HTTP 500/);
-  assert.match(fs.readFileSync(marker, 'utf8'), /stopped/, 'failed readiness must terminate the child');
+  assertStopObservedByHost('failed readiness must terminate the child');
 
   reset('invalid-shape');
   const invalidShape = await runFakeDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 750, shutdownTimeoutMs: 1_000 });
@@ -348,10 +369,12 @@ try {
     }
   }
 
-  reset('stubborn');
-  const forced = await runFakeDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 500, shutdownTimeoutMs: 100 });
-  assert.strictEqual(forced.at(-1).level, 'bad');
-  assert.match(forced.at(-1).note, /required forced cleanup/);
+  if (process.platform !== 'win32') {
+    reset('stubborn');
+    const forced = await runFakeDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 500, shutdownTimeoutMs: 100 });
+    assert.strictEqual(forced.at(-1).level, 'bad');
+    assert.match(forced.at(-1).note, /required forced cleanup/);
+  }
 
   reset();
   const windows = await runFakeDoctor({
@@ -363,7 +386,7 @@ try {
   });
   assert.deepStrictEqual(windows.map((check) => check.level), ['ok', 'ok', 'ok']);
   assert.match(windows[2].note, /child exited and the loopback port was released/);
-  assert.match(fs.readFileSync(marker, 'utf8'), /stopped/, 'Windows cleanup uses the retained child handle and observes exit');
+  assertStopObservedByHost('Windows cleanup uses the retained child handle and observes exit');
 } finally {
   fs.rmSync(root, { recursive: true, force: true });
 }

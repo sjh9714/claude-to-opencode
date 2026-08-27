@@ -11,6 +11,11 @@ const cli = path.join(root, 'bin', 'cli.mjs');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-movein-'));
 const home = path.join(tmp, 'home');
 const project = path.join(tmp, 'proj');
+const sameContents = (actual, expected, message) => assert.strictEqual(
+  fs.readFileSync(actual, 'utf8'),
+  fs.readFileSync(expected, 'utf8'),
+  message,
+);
 
 // fixture: fake Claude Code home + project
 fs.mkdirSync(path.join(home, '.claude', 'skills', 'my-skill'), { recursive: true });
@@ -23,7 +28,10 @@ fs.writeFileSync(path.join(home, '.claude', 'settings.json'), JSON.stringify({
       { type: 'command', command: 'curl -H "Authorization: ghp_abcdefghijklmnopqrst1234"' },
     ] }],
     Notification: [{ hooks: [{ type: 'command', command: 'say ping' }] }],
-    PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'prompt', prompt: 'careful' }] }],
+    PreToolUse: [{ matcher: 'Bash', hooks: [
+      { type: 'prompt', prompt: 'careful' },
+      { type: 'command' },
+    ] }],
   },
   permissions: { allow: ['Bash(ls:*)'], deny: ["Bash(rm -rf:*)", "Read(*secrets*)", 'WebFetch(domain:evil.com)'], ask: ['Write', 'Task'] },
 }));
@@ -58,7 +66,7 @@ for (const pkg of ['@deepseek-ai/dsh-hooks-claude-code', '@deepseek-ai/dsh-hook-
 }
 
 const run = (extra = []) =>
-  execFileSync(process.execPath, [cli, project, ...extra], { env: { ...process.env, HOME: home, DSH_HOME: '' }, encoding: 'utf8' });
+  execFileSync(process.execPath, [cli, project, ...extra], { env: { ...process.env, HOME: home, USERPROFILE: home, DSH_HOME: '' }, encoding: 'utf8' });
 
 // 1. dry run writes nothing, diff report present
 const dry = run();
@@ -74,6 +82,9 @@ assert.match(dry, /⚠ secret-looking value in global hook command/, 'plaintext 
 assert.match(dry, /hook references \$MY_SECRET_TOKEN/, 'unknown hook env var warned');
 assert.match(dry, /hook Notification \(global settings\): event is not among the 7/, 'unbridged event warned');
 assert.match(dry, /hook PreToolUse \(global settings\): type "prompt" is skipped/, 'non-command hook warned');
+assert.match(dry, /hook PreToolUse \(global settings\): command hook has no non-empty command/, 'malformed command hook warned');
+assert.match(dry, /records but does not enforce hook \{"continue":false\} \(#1514\)/, 'continue:false gap warned before apply');
+assert.match(dry, /static inspection cannot prove hook enforcement/, 'runtime canary named before apply');
 assert.ok(!dry.includes('hook SessionStart (global settings): event'), 'bridged event not flagged');
 assert.ok(!dry.includes('$CLAUDE_PROJECT_DIR ('), 'substituted var not warned');
 assert.ok(!dry.includes('$HOME ('), 'common shell var not warned');
@@ -113,9 +124,9 @@ assert.ok(!fs.existsSync(path.join(home, '.dsh', 'skills')), 'dry run must not l
 const out = run(['--apply']);
 assert.match(out, /moved in/);
 const dsh = path.join(home, '.dsh');
-assert.ok(fs.lstatSync(path.join(dsh, 'AGENTS.md')).isSymbolicLink(), 'global CLAUDE.md linked');
-assert.ok(fs.lstatSync(path.join(dsh, 'skills', 'my-skill')).isSymbolicLink(), 'global skill linked');
-assert.ok(fs.lstatSync(path.join(project, '.dsh', 'skills', 'proj-skill')).isSymbolicLink(), 'project skill linked');
+sameContents(path.join(dsh, 'AGENTS.md'), path.join(home, '.claude', 'CLAUDE.md'), 'global CLAUDE.md linked or safely copied');
+sameContents(path.join(dsh, 'skills', 'my-skill', 'SKILL.md'), path.join(home, '.claude', 'skills', 'my-skill', 'SKILL.md'), 'global skill linked or safely copied');
+sameContents(path.join(project, '.dsh', 'skills', 'proj-skill', 'SKILL.md'), path.join(project, '.claude', 'skills', 'proj-skill', 'SKILL.md'), 'project skill linked or safely copied');
 const patch = fs.readFileSync(path.join(dsh, 'cordis.patch.yml'), 'utf8');
 assert.match(patch, /serverName: 'github'/);
 assert.match(patch, /'it''s-a-server'/, 'single quotes escaped');
@@ -142,6 +153,59 @@ assert.match(cmdSkill, /arguments: \[message\]/, 'argument-hint carried over');
 assert.match(cmdSkill, /\$ARGUMENTS/, 'arguments note present');
 assert.match(cmdSkill, /commit with \$ARGUMENTS/, 'command body carried into skill');
 assert.ok(manifest[0].moved.some((m) => m.kind === 'command' && m.dest.endsWith('ship-it')), 'command move recorded');
+
+// Static doctor proves the bridge is wired but explicitly does not claim that
+// a user hook was executed or enforced.
+{
+  const { runDoctor } = await import('../lib/doctor.mjs');
+  const wired = runDoctor({ home, project });
+  assert.ok(wired.some((check) => check.level === 'ok'
+    && check.label === 'hook bridge'
+    && /2 supported command hook\(s\) across 1 settings file\(s\).*wiring, not runtime enforcement/.test(check.note)));
+  assert.ok(wired.some((check) => check.level === 'warn'
+    && check.label === 'hook enforcement'
+    && /continue.*#1514/.test(check.note)));
+  assert.ok(wired.some((check) => check.level === 'note'
+    && check.label === 'hook canary'
+    && /disposable project/.test(check.note)));
+
+  const localSettings = path.join(project, '.claude', 'settings.local.json');
+  fs.writeFileSync(localSettings, JSON.stringify({
+    hooks: {
+      PreCompact: [{ hooks: [{ type: 'command', command: 'node compact.mjs' }] }],
+      PreToolUse: [{ matcher: '^(Bash|Read)$', hooks: [{ type: 'command', command: 'node deny.mjs' }] }],
+    },
+  }));
+  const withLocal = runDoctor({ home, project });
+  assert.ok(withLocal.some((check) => check.level === 'warn'
+    && check.label === 'hook PreCompact'
+    && check.note.includes(localSettings)), 'project-local hook settings are inspected');
+  assert.ok(withLocal.some((check) => check.level === 'warn'
+    && check.label === 'hook matcher'
+    && check.note.includes('^(Bash|Read)$')), 'uppercase tools inside a regex matcher are warned');
+  assert.ok(withLocal.some((check) => check.level === 'bad'
+    && check.label === 'hook bridge'
+    && check.note.includes(localSettings)), 'each supported settings layer needs its own bridge row');
+  fs.unlinkSync(localSettings);
+}
+
+// Windows-only exit-code risk is deterministic from platform + hook config;
+// no hook process is started to discover it.
+{
+  const { hookSafetyFindings, deadHooks } = await import('../lib/scan.mjs');
+  const findings = hookSafetyFindings([{
+    scope: 'fixture',
+    settings: { hooks: { PreToolUse: [{ hooks: [{ type: 'command', command: 'node deny.mjs' }] }] } },
+  }], { platform: 'win32' });
+  assert.ok(findings.some((finding) => finding.kind === 'windows-exit-code'
+    && /\$LASTEXITCODE.*#2485\/#3714|#2485\/#3714.*\$LASTEXITCODE/.test(finding.message)));
+  const malformed = deadHooks([{
+    scope: 'fixture',
+    settings: { hooks: { PreToolUse: {}, Stop: [{}] } },
+  }]);
+  assert.ok(malformed.some((finding) => /event value is not an array/.test(finding.why)));
+  assert.ok(malformed.some((finding) => /matcher group has no hooks array/.test(finding.why)));
+}
 
 // 3. idempotent re-apply: no duplicate block, existing links skipped
 fs.writeFileSync(path.join(dsh, 'cordis.patch.yml'), "- insert:\n    - id: user-row\n      name: 'keep-me'\n" + patch);
@@ -198,17 +262,18 @@ assert.match(patch2, /keep-me/, 'user rows preserved');
   const born = path.join(home, '.dsh', 'skills', 'dsh-native-skill');
   fs.mkdirSync(born, { recursive: true });
   fs.writeFileSync(path.join(born, 'SKILL.md'), '---\nname: dsh-native-skill\ndescription: d\n---\nb');
-  const revOut = execFileSync(process.execPath, [cli, project, '--reverse', '--apply'],
-    { env: { ...process.env, HOME: home, DSH_HOME: '' }, encoding: 'utf8' });
+  const reverseApply = [cli, project, '--reverse', '--apply', ...(process.platform === 'win32' ? ['--copy'] : [])];
+  const revOut = execFileSync(process.execPath, reverseApply,
+    { env: { ...process.env, HOME: home, USERPROFILE: home, DSH_HOME: '' }, encoding: 'utf8' });
   assert.match(revOut, /skill dsh-native-skill/);
   assert.match(revOut, /skill my-skill\s*\.+\s*moved in from Claude Code originally/);
   assert.match(revOut, /AGENTS\.md \(global\)\s*\.+\s*already points into ~\/.claude/);
-  assert.ok(fs.lstatSync(path.join(home, '.claude', 'skills', 'dsh-native-skill')).isSymbolicLink(), 'DSH-born skill linked back');
+  sameContents(path.join(home, '.claude', 'skills', 'dsh-native-skill', 'SKILL.md'), path.join(born, 'SKILL.md'), 'DSH-born skill linked or copied back');
   const manifest2 = JSON.parse(fs.readFileSync(path.join(home, '.dsh', 'movein-manifest.json'), 'utf8'));
   assert.ok(manifest2.at(-1).moved.some((m) => m.label === 'skill dsh-native-skill'), 'reverse move recorded');
   // idempotent
   const revOut2 = execFileSync(process.execPath, [cli, project, '--reverse'],
-    { env: { ...process.env, HOME: home, DSH_HOME: '' }, encoding: 'utf8' });
+    { env: { ...process.env, HOME: home, USERPROFILE: home, DSH_HOME: '' }, encoding: 'utf8' });
   assert.match(revOut2, /skill dsh-native-skill\s*\.+.*already exists/);
 }
 
@@ -222,7 +287,7 @@ assert.match(patch2, /keep-me/, 'user rows preserved');
   let doc = '', code = 0;
   try {
     doc = execFileSync(process.execPath, [cli, 'doctor', project],
-      { env: { ...process.env, HOME: home, DSH_HOME: '' }, encoding: 'utf8' });
+      { env: { ...process.env, HOME: home, USERPROFILE: home, DSH_HOME: '' }, encoding: 'utf8' });
   } catch (e) { doc = e.stdout; code = e.status; }
   assert.strictEqual(code, 1, 'doctor exits 1 when a check fails');
   assert.match(doc, /✗ skill risky-skill, unquoted ": "/, 'moved silent-drop skill flagged');
@@ -230,6 +295,9 @@ assert.match(patch2, /keep-me/, 'user rows preserved');
   assert.match(doc, /✓ package @deepseek-ai\/dsh-mcp-client, resolvable/);
   assert.match(doc, /✓ package dsh-movein-permissions, resolvable/);
   assert.match(doc, /✓ moved assets/, 'manifest destinations verified');
+  assert.match(doc, /✗ hook bridge, 2 supported command hook\(s\) found, but no generated bridge row points to/, 'missing hook bridge row is fatal');
+  assert.match(doc, /⚠ hook enforcement, DSH records but does not enforce/, 'known runtime enforcement gap is explicit');
+  assert.match(doc, /○ hook canary, static inspection cannot prove hook enforcement/, 'manual canary is explicit');
   assert.match(doc, /NEW session/, 'catalog snapshot reminder');
 }
 
@@ -238,7 +306,7 @@ assert.match(patch2, /keep-me/, 'user rows preserved');
   const patchPath = path.join(home, '.dsh', 'cordis.patch.yml');
   fs.writeFileSync(patchPath, 'corrupted by hand\n');
   const out7 = execFileSync(process.execPath, [cli, 'restore'],
-    { env: { ...process.env, HOME: home, DSH_HOME: '' }, encoding: 'utf8' });
+    { env: { ...process.env, HOME: home, USERPROFILE: home, DSH_HOME: '' }, encoding: 'utf8' });
   assert.match(out7, /restored cordis\.patch\.yml from/);
   const restored = fs.readFileSync(patchPath, 'utf8');
   assert.match(restored, /keep-me/, 'pre-overwrite content restored');
@@ -248,7 +316,7 @@ assert.match(patch2, /keep-me/, 'user rows preserved');
 // 9. --emit-rules: dsh-permission-rules YAML from CC deny/ask rules
 {
   const rules = execFileSync(process.execPath, [cli, project, '--emit-rules'],
-    { env: { ...process.env, HOME: home, DSH_HOME: '' }, encoding: 'utf8' });
+    { env: { ...process.env, HOME: home, USERPROFILE: home, DSH_HOME: '' }, encoding: 'utf8' });
   assert.match(rules, /REVIEW BEFORE USE/);
   assert.match(rules, /tools: \[bash, pwsh\], params: \{ command: "rm -rf\*" \}/, 'Bash glob mapped');
   assert.match(rules, /tools: \[read\], paths: \["\*secrets\*"\]/, 'Read path mapped');
@@ -296,7 +364,7 @@ assert.match(patch2, /keep-me/, 'user rows preserved');
   fs.mkdirSync(proj2, { recursive: true });
   const runC = (extra = []) =>
     execFileSync(process.execPath, [cli, proj2, '--from', 'codex', ...extra],
-      { env: { ...process.env, HOME: home2, DSH_HOME: '' }, encoding: 'utf8' });
+      { env: { ...process.env, HOME: home2, USERPROFILE: home2, DSH_HOME: '' }, encoding: 'utf8' });
 
   const dryC = runC();
   assert.match(dryC, /Codex -> DeepSeek Harness moving estimate/, 'codex origin in header');
@@ -308,7 +376,7 @@ assert.match(patch2, /keep-me/, 'user rows preserved');
   const outC = runC(['--apply']);
   assert.match(outC, /moved in/);
   const dsh2 = path.join(home2, '.dsh');
-  assert.strictEqual(fs.readlinkSync(path.join(dsh2, 'AGENTS.md')), path.join(home2, '.codex', 'AGENTS.md'));
+  sameContents(path.join(dsh2, 'AGENTS.md'), path.join(home2, '.codex', 'AGENTS.md'), 'Codex global instructions linked or safely copied');
   const promptSkill = fs.readFileSync(path.join(dsh2, 'skills', 'review', 'SKILL.md'), 'utf8');
   assert.match(promptSkill, /Converted from a Codex custom prompt/, 'origin wording carried');
   const patchC = fs.readFileSync(path.join(dsh2, 'cordis.patch.yml'), 'utf8');
@@ -320,7 +388,7 @@ assert.match(patch2, /keep-me/, 'user rows preserved');
   const home3 = path.join(tmp, 'home-empty');
   fs.mkdirSync(home3, { recursive: true });
   const dryE = execFileSync(process.execPath, [cli, proj2, '--from', 'codex'],
-    { env: { ...process.env, HOME: home3, DSH_HOME: '' }, encoding: 'utf8' });
+    { env: { ...process.env, HOME: home3, USERPROFILE: home3, DSH_HOME: '' }, encoding: 'utf8' });
   assert.match(dryE, /Is Codex set up on this machine \(~\/.codex\)\?/);
 }
 
