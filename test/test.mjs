@@ -8,6 +8,16 @@ import { performance } from 'node:perf_hooks';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const cli = path.join(root, 'bin', 'cli.mjs');
+const packageManifest = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+
+assert.strictEqual(packageManifest.dsh.compatibility.dsh, '>=0.1.0-rc.8 <0.2.0');
+assert.deepStrictEqual(packageManifest.dsh.compatibility.dshReleases, {
+  '0.1.0-rc.8': 'compatible',
+  '0.1.1-rc.1': 'compatible',
+  '0.1.1-rc.2': 'compatible',
+});
+assert.deepStrictEqual(packageManifest.dsh.compatibility.profiles, ['web']);
+assert.deepStrictEqual(packageManifest.os, ['darwin', 'linux', 'win32']);
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-movein-'));
 const home = path.join(tmp, 'home');

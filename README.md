@@ -58,6 +58,14 @@ After a successful CLI apply, a human TTY asks `Star dsh-movein? (Enter = Yes) [
 
 ## Compatibility
 
+The DSH plugin is tested in a fresh `web` profile against every currently supported Store release:
+
+| DSH release | Install | Web start | Uninstall |
+| --- | --- | --- | --- |
+| `0.1.0-rc.8` | Compatible | Compatible | Compatible |
+| `0.1.1-rc.1` | Compatible | Compatible | Compatible |
+| `0.1.1-rc.2` | Compatible | Compatible | Compatible |
+
 | Origin | What moves |
 | --- | --- |
 | Claude Code | Global and project instructions, skills, slash commands, MCP servers, the supported hook configuration subset, subagents, and mapped permission rules |

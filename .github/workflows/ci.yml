@@ -192,9 +192,73 @@ jobs:
             exit 1
           fi
 
+  movein-dsh-compat:
+    name: movein plugin (DSH ${{ matrix.dsh }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        dsh: [0.1.0-rc.8, 0.1.1-rc.1, 0.1.1-rc.2]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.19.0
+          package-manager-cache: false
+      - run: npm ci
+      - run: npm install -g pnpm
+      - name: install, start, and uninstall in a disposable profile
+        env:
+          DSH_VERSION: ${{ matrix.dsh }}
+          DSH_HOME: ${{ runner.temp }}/movein-dsh-home
+        run: |
+          npm pack --silent --pack-destination "$RUNNER_TEMP"
+          TARBALL="$RUNNER_TEMP/dsh-movein-0.13.4.tgz"
+          test -f "$TARBALL"
+
+          pnpm dlx "@deepseek-ai/dsh@$DSH_VERSION" plugin --profile web add "$TARBALL"
+          pnpm dlx "@deepseek-ai/dsh@$DSH_VERSION" --profile web --dump-config > "$RUNNER_TEMP/composed-before.yml"
+          grep -q "dsh-movein" "$RUNNER_TEMP/composed-before.yml"
+
+          pnpm dlx "@deepseek-ai/dsh@$DSH_VERSION" web --no-open --host 127.0.0.1 --port 3108 > "$RUNNER_TEMP/dsh-web.log" 2>&1 &
+          DSH_PID=$!
+          cleanup() {
+            if kill -0 "$DSH_PID" 2>/dev/null; then
+              kill "$DSH_PID" 2>/dev/null || true
+              wait "$DSH_PID" || true
+            fi
+          }
+          trap cleanup EXIT
+
+          READY=0
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent --show-error http://127.0.0.1:3108/ > /dev/null; then
+              READY=1
+              break
+            fi
+            if ! kill -0 "$DSH_PID" 2>/dev/null; then
+              cat "$RUNNER_TEMP/dsh-web.log"
+              exit 1
+            fi
+            sleep 1
+          done
+          if [ "$READY" -ne 1 ]; then
+            cat "$RUNNER_TEMP/dsh-web.log"
+            exit 1
+          fi
+
+          cleanup
+          trap - EXIT
+          pnpm dlx "@deepseek-ai/dsh@$DSH_VERSION" plugin --profile web remove dsh-movein
+          pnpm dlx "@deepseek-ai/dsh@$DSH_VERSION" --profile web --dump-config > "$RUNNER_TEMP/composed-after.yml"
+          if grep -q "dsh-movein" "$RUNNER_TEMP/composed-after.yml"; then
+            exit 1
+          fi
+
   ci-gate:
     if: always()
-    needs: [test, platform-test, opencode-compat, security, codeql, dsh-boot-smoke, permissions-dsh-compat]
+    needs: [test, platform-test, opencode-compat, security, codeql, dsh-boot-smoke, permissions-dsh-compat, movein-dsh-compat]
     runs-on: ubuntu-latest
     steps:
       - name: require every CI lane to succeed
@@ -206,5 +270,6 @@ jobs:
           CODEQL_RESULT: ${{ needs.codeql.result }}
           DSH_BOOT_RESULT: ${{ needs.dsh-boot-smoke.result }}
           PERMISSIONS_COMPAT_RESULT: ${{ needs.permissions-dsh-compat.result }}
+          MOVEIN_COMPAT_RESULT: ${{ needs.movein-dsh-compat.result }}
         run: |
-          node -e "const names = ['TEST_RESULT', 'PLATFORM_RESULT', 'OPENCODE_RESULT', 'SECURITY_RESULT', 'CODEQL_RESULT', 'DSH_BOOT_RESULT', 'PERMISSIONS_COMPAT_RESULT']; const failed = names.filter((name) => process.env[name] !== 'success'); if (failed.length) { console.error(failed.map((name) => name + '=' + process.env[name]).join('\\n')); process.exit(1); }"
+          node -e "const names = ['TEST_RESULT', 'PLATFORM_RESULT', 'OPENCODE_RESULT', 'SECURITY_RESULT', 'CODEQL_RESULT', 'DSH_BOOT_RESULT', 'PERMISSIONS_COMPAT_RESULT', 'MOVEIN_COMPAT_RESULT']; const failed = names.filter((name) => process.env[name] !== 'success'); if (failed.length) { console.error(failed.map((name) => name + '=' + process.env[name]).join('\\n')); process.exit(1); }"
