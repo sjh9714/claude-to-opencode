@@ -129,6 +129,15 @@ if (!isOfficial) {
 }
 fs.appendFileSync(marker, 'started\\n');
 if (mode === 'fail') { console.error('fake startup failure'); process.exit(7); }
+if (mode.startsWith('dependency-')) {
+  const message = mode === 'dependency-native'
+    ? 'No usable native binding found for node-addon-require-builtin-darwin-arm64 (auto)'
+    : mode === 'dependency-host'
+      ? "Cannot find package '@deepseek-ai/dsh-settings-file' imported from the official loader"
+      : "Cannot find package 'user-plugin' imported from a user module";
+  fs.writeSync(2, message + '\\n' + 'x'.repeat(12_000) + '\\napiKey=private-startup-token\\n');
+  process.exit(7);
+}
 let server;
 const stop = () => {
   fs.appendFileSync(marker, 'stopped\\n');
@@ -272,6 +281,31 @@ try {
   const failed = await runFakeDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 1_000, shutdownTimeoutMs: 500 });
   assert.strictEqual(failed.at(-1).level, 'bad');
   assert.match(failed.at(-1).note, /code 7.*fake startup failure/);
+  assert.doesNotMatch(failed.at(-1).note, /native binding|native-loader|hoisted installation/);
+
+  for (const [mode, expected] of [
+    ['dependency-native', /installed DSH could not load its native binding/],
+    ['dependency-host', /official DSH package imports failed.*resolution problem is possible/],
+    ['dependency-unrelated', null],
+  ]) {
+    reset(mode);
+    const result = await runFakeDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 1_000, shutdownTimeoutMs: 500 });
+    assert.deepStrictEqual(result.map((check) => check.level), ['ok', 'ok', 'bad']);
+    const note = result.at(-1).note;
+    assert.match(note, /exited before readiness.*code 7/);
+    assert.doesNotMatch(JSON.stringify(result), /private-startup-token|inline-secret-never-send/);
+    if (expected) {
+      assert.match(note, expected, 'host classification must survive an error leaving the bounded log tail');
+      assert.match(note, /does not activate migrated configuration/);
+      assert.match(note, /separate local npm or pnpm hoisted installation/);
+      assert.match(note, /Do not delete the migration profile or disable package-manager security checks/);
+    } else {
+      assert.doesNotMatch(note, /native binding|native-loader|hoisted installation/, 'unrelated missing packages must not be diagnosed as host-native failures');
+    }
+    assert.ok(!fs.existsSync(mcpMarker), 'a dependency failure must not activate the migrated configuration');
+    assert.strictEqual(fs.readFileSync(path.join(profile, 'cordis.yml'), 'utf8'), 'original profile root\n');
+    assert.ok(fs.existsSync(path.join(profile, 'node_modules', 'probe-package', 'package.json')));
+  }
 
   for (const [mode, expected] of [
     ['composition-fail', /exited with code 6/],
