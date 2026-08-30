@@ -91,7 +91,7 @@ npx dsh-movein --from opencode --apply
 - Windows 拒绝创建符号链接时会自动改为复制，并在报告中注明
 - 每次写入前备份 `cordis.patch.yml`
 - `npx dsh-movein restore` 恢复最新备份
-- `~/.dsh/movein-manifest.json` 记录来源和目标
+- `~/.dsh/movein-manifest.json` 记录 instruction、资产与生成配置的来源和目标；如果已有 instruction 目标与来源逐字节一致，安全地重复 apply 可以补回缺失的来源记录
 - 环境变量占位符保留为运行时引用
 - 预演会报告疑似明文密钥
 - sessions 不在范围内
