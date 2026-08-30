@@ -103,7 +103,7 @@ If any JSONC file cannot be parsed, `--apply` is blocked before the first write.
 - On Windows, a permission-denied symlink falls back to a copy and is named in the report
 - `cordis.patch.yml` is backed up before each write
 - `npx dsh-movein restore` restores the newest patch backup
-- `~/.dsh/movein-manifest.json` records moved sources and destinations
+- `~/.dsh/movein-manifest.json` records moved instructions, assets, and generated configuration destinations; a safe repeated apply can recover missing instruction provenance when the existing destination still byte-matches its source
 - Environment placeholders remain runtime references
 - Secret-looking plaintext values are reported before apply
 - Sessions stay out of scope

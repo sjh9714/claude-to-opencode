@@ -151,6 +151,8 @@ assert.ok(!patch.includes('Bash(ls:*)'), 'allow rules stay out of the gate confi
 assert.ok(!patch.includes('WebFetch'), 'unmapped rules stay out of the gate config');
 const manifest = JSON.parse(fs.readFileSync(path.join(dsh, 'movein-manifest.json'), 'utf8'));
 assert.strictEqual(manifest.length, 1);
+assert.ok(manifest[0].moved.some((m) => m.kind === 'instructions' && m.dest.endsWith('AGENTS.md')), 'global instructions recorded');
+assert.ok(manifest[0].moved.some((m) => m.kind === 'config' && m.dest.endsWith('cordis.patch.yml')), 'generated config recorded');
 assert.ok(manifest[0].moved.some((m) => m.kind === 'skill' && m.label === 'skill my-skill' && m.source.endsWith('my-skill')), 'skill move recorded');
 assert.ok(manifest[0].moved.some((m) => m.kind === 'agent' && m.dest.endsWith('code-reviewer')), 'agent move recorded');
 const skillMd = fs.readFileSync(path.join(dsh, 'skills', 'code-reviewer', 'SKILL.md'), 'utf8');
@@ -278,7 +280,7 @@ assert.match(patch2, /keep-me/, 'user rows preserved');
     { env: { ...process.env, HOME: home, USERPROFILE: home, DSH_HOME: '' }, encoding: 'utf8' });
   assert.match(revOut, /skill dsh-native-skill/);
   assert.match(revOut, /skill my-skill\s*\.+\s*moved in from Claude Code originally/);
-  assert.match(revOut, /AGENTS\.md \(global\)\s*\.+\s*already points into ~\/.claude/);
+  assert.match(revOut, /AGENTS\.md \(global\)\s*\.+\s*(?:already points into ~\/.claude|copied from Claude Code originally)/);
   sameContents(path.join(home, '.claude', 'skills', 'dsh-native-skill', 'SKILL.md'), path.join(born, 'SKILL.md'), 'DSH-born skill linked or copied back');
   const manifest2 = JSON.parse(fs.readFileSync(path.join(home, '.dsh', 'movein-manifest.json'), 'utf8'));
   assert.ok(manifest2.at(-1).moved.some((m) => m.label === 'skill dsh-native-skill'), 'reverse move recorded');
@@ -286,6 +288,36 @@ assert.match(patch2, /keep-me/, 'user rows preserved');
   const revOut2 = execFileSync(process.execPath, [cli, project, '--reverse'],
     { env: { ...process.env, HOME: home, USERPROFILE: home, DSH_HOME: '' }, encoding: 'utf8' });
   assert.match(revOut2, /skill dsh-native-skill\s*\.+.*already exists/);
+}
+
+// Copy fallback provenance is accepted only while the recorded source stays
+// inside Claude's skill root and the copied tree remains byte-identical.
+{
+  const copyHome = path.join(tmp, 'home-reverse-copy');
+  const copyProject = path.join(tmp, 'project-reverse-copy');
+  const copyDsh = path.join(copyHome, '.dsh');
+  const source = path.join(copyHome, '.claude', 'skills', 'copied-skill');
+  const dest = path.join(copyDsh, 'skills', 'copied-skill');
+  fs.mkdirSync(source, { recursive: true });
+  fs.mkdirSync(dest, { recursive: true });
+  fs.writeFileSync(path.join(source, 'SKILL.md'), '---\nname: copied-skill\ndescription: d\n---\nbody');
+  fs.copyFileSync(path.join(source, 'SKILL.md'), path.join(dest, 'SKILL.md'));
+  const manifestPath = path.join(copyDsh, 'movein-manifest.json');
+  const writeCopyManifest = (recordedSource) => fs.writeFileSync(manifestPath, JSON.stringify([{
+    at: new Date().toISOString(),
+    project: copyProject,
+    moved: [{ kind: 'skill', label: 'skill copied-skill', source: recordedSource, dest }],
+  }]));
+  const { scanReverse } = await import('../lib/reverse.mjs');
+  writeCopyManifest(source);
+  assert.strictEqual(scanReverse({ home: copyHome, project: copyProject }).skills[0].cameFromClaude, true, 'matching manifest copy recognized');
+  const outside = path.join(tmp, 'outside-skill');
+  fs.cpSync(source, outside, { recursive: true });
+  writeCopyManifest(outside);
+  assert.strictEqual(scanReverse({ home: copyHome, project: copyProject }).skills[0].cameFromClaude, false, 'out-of-root manifest source rejected');
+  writeCopyManifest(source);
+  fs.appendFileSync(path.join(dest, 'SKILL.md'), '\nchanged in DSH');
+  assert.strictEqual(scanReverse({ home: copyHome, project: copyProject }).skills[0].cameFromClaude, false, 'diverged copy not mistaken for its source');
 }
 
 // 7. doctor: flags the silently-dropped skill, exits 1, packages checked
@@ -406,6 +438,18 @@ assert.match(patch2, /keep-me/, 'user rows preserved');
   assert.match(patchC, /serverName: 'gh'/);
   assert.ok(!patchC.includes('dsh-hooks-claude-code'), 'no hooks row for codex');
   assert.ok(!patchC.includes('dsh-movein-permissions'), 'no perms row for codex');
+  const manifestC = JSON.parse(fs.readFileSync(path.join(dsh2, 'movein-manifest.json'), 'utf8'));
+  assert.ok(manifestC.at(-1).moved.some((m) => m.kind === 'instructions' && m.source.endsWith(path.join('.codex', 'AGENTS.md'))), 'Codex instructions recorded');
+  assert.ok(manifestC.at(-1).moved.some((m) => m.kind === 'config' && m.dest.endsWith('cordis.patch.yml')), 'Codex MCP config recorded');
+
+  // v0.13.4 omitted a manifest when an apply contained only global
+  // instructions plus MCP rows. A safe repeat repairs provenance when the
+  // existing instruction destination still byte-matches its source.
+  fs.rmSync(path.join(dsh2, 'movein-manifest.json'));
+  runC(['--apply']);
+  const repairedManifest = JSON.parse(fs.readFileSync(path.join(dsh2, 'movein-manifest.json'), 'utf8'));
+  assert.ok(repairedManifest.at(-1).moved.some((m) => m.kind === 'instructions'), 'matching existing instructions recover provenance');
+  assert.ok(repairedManifest.at(-1).moved.some((m) => m.kind === 'config'), 'repeated MCP apply records generated config');
 
   // empty codex machine
   const home3 = path.join(tmp, 'home-empty');
