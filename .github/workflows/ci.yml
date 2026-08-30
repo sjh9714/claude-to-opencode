@@ -214,7 +214,7 @@ jobs:
           DSH_HOME: ${{ runner.temp }}/movein-dsh-home
         run: |
           npm pack --silent --pack-destination "$RUNNER_TEMP"
-          TARBALL="$RUNNER_TEMP/dsh-movein-0.13.5.tgz"
+          TARBALL="$RUNNER_TEMP/dsh-movein-0.13.6.tgz"
           test -f "$TARBALL"
 
           pnpm dlx "@deepseek-ai/dsh@$DSH_VERSION" plugin --profile web add "$TARBALL"

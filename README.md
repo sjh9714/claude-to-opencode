@@ -120,6 +120,10 @@ npx dsh-movein doctor --live
 
 No DSH download, model, or API credential is used. Child processes receive only a small OS, `PATH`, and locale allowlist; home, application-data, XDG, cache, and temporary paths all point inside the disposable snapshot. Shutdown signals the retained direct child handle and success requires observing that child exit and the loopback port become unreachable. It does not issue PID-tree kill commands. If child termination cannot be confirmed, the snapshot is preserved and the live check fails. Live checking requires the DSH-supported Node 22.19+ or 24+ runtime; Node 23 is rejected before any child starts.
 
+If the official-only baseline cannot load a native binding or import official DSH packages, `doctor --live` names the host installation failure separately from migration results. Missing package names alone do not prove a native-loader problem. A reproduced case with DSH `0.1.1-rc.2`, pnpm `11.24.0`, and `node-addon-native-custom-loader` `0.1.5` on macOS arm64 resolves the platform package from the native addon's directory but not from the shared loader's directory. The installed binary loads successfully when resolved from its owning package; a separate hoisted installation also passes. This dependency-ownership issue is tracked in [DSH discussion #3250](https://github.com/deepseek-ai/deepseek-harness/discussions/3250).
+
+Keep your migration profile intact. Compare a **separate** local DSH installation using npm or pnpm's project-local `nodeLinker: hoisted`, then rerun the live check against that installation. This is a diagnostic comparison, not an automatic repair or a guarantee for every installation layout. The doctor does not install missing packages, change global package-manager settings, disable release-age or script-approval policies, or add internal Node flags.
+
 Then inspect the composed DSH profile.
 
 ```sh
