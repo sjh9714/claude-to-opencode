@@ -6,7 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { scan } from '../lib/scan.mjs';
-import { planActions, applyActions } from '../lib/apply.mjs';
+import { planActions, applyActions, backupPatch, restoreLatestBackup } from '../lib/apply.mjs';
 
 const demoRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-movein-first-run-'));
 const fixtureHome = path.join(demoRoot, 'source-home');
@@ -41,18 +41,22 @@ try {
   put('source-home/.claude/CLAUDE.md', '# Synthetic source instructions\n');
   put('source-home/.claude/skills/review-checklist/SKILL.md', skill('review-checklist', 'Source checklist'));
   put('source-home/.claude/skills/commit-notes/SKILL.md', skill('commit-notes', 'Summarize a diff'));
+  put('source-home/.claude/projects/synthetic/session.jsonl', '{"synthetic":"source transcript placeholder"}\n');
   put('project/CLAUDE.md', '# Synthetic project instructions\n');
   put('project/.claude/skills/frontend-check/SKILL.md', skill('frontend-check', 'Check a small UI change'));
   put('target-dsh/AGENTS.md', '# Keep the existing target instructions\n');
   put('target-dsh/skills/review-checklist/SKILL.md', skill('review-checklist', 'Keep the existing checklist'));
+  put('target-dsh/sessions/synthetic/session.jsonl', '{"synthetic":"existing session placeholder"}\n');
 
   const sourceBefore = snapshot(fixtureHome);
   const projectSourceBefore = snapshot(path.join(fixtureProject, '.claude'));
   const projectInstructionsBefore = fs.readFileSync(path.join(fixtureProject, 'CLAUDE.md'), 'utf8');
   const existingInstructions = fs.readFileSync(path.join(fixtureDsh, 'AGENTS.md'), 'utf8');
   const existingSkill = fs.readFileSync(path.join(fixtureDsh, 'skills/review-checklist/SKILL.md'), 'utf8');
+  const sessionsBefore = snapshot(path.join(fixtureDsh, 'sessions'));
   const beforePreview = snapshot(demoRoot);
   const scanned = inspect();
+  assert.equal(scanned.sessionCount, 1, 'source transcripts are counted, not imported');
   const actions = planActions(scanned, { copy: true });
   assert.deepEqual(snapshot(demoRoot), beforePreview, 'preview must not write any files');
   assert.equal(actions.filter((a) => a.status === 'move').length, 2);
@@ -66,6 +70,7 @@ try {
   });
   assert.equal(actions.filter((a) => a.status === 'done').length, 2);
   assert.equal(actions.filter((a) => a.status === 'error').length, 0);
+  assert.deepEqual(snapshot(path.join(fixtureDsh, 'sessions')), sessionsBefore, 'existing sessions must remain unchanged');
   for (const [source, destination] of [
     [path.join(fixtureHome, '.claude/skills/commit-notes/SKILL.md'), path.join(fixtureDsh, 'skills/commit-notes/SKILL.md')],
     [path.join(fixtureProject, '.claude/skills/frontend-check/SKILL.md'), path.join(fixtureProject, '.dsh/skills/frontend-check/SKILL.md')],
@@ -88,6 +93,30 @@ try {
   assert.equal(repeated.filter((a) => a.status === 'skip').length, 4);
   assert.deepEqual(snapshot(demoRoot), beforeRepeat, 'repeated preview must not write');
   console.log('3. 再预演：0 个待搬项目；没有重复写入。');
+
+  put('source-home/.claude/skills/commit-notes/SKILL.md', skill('commit-notes', 'Changed after the copy'));
+  const beforeChangedSource = snapshot(demoRoot);
+  const changedScan = inspect();
+  const changedActions = planActions(changedScan, { copy: true });
+  assert.equal(changedActions.filter((a) => a.status === 'move').length, 0);
+  assert.equal(changedActions.filter((a) => a.status === 'skip').length, 4);
+  applyActions(changedActions, {
+    scanResult: changedScan,
+    installer: () => { throw new Error('This demo must not install packages'); },
+  });
+  assert.deepEqual(snapshot(demoRoot), beforeChangedSource, 'repeated copy apply must not synchronize a changed source');
+  console.log('4. 来源技能改变后再应用：已有副本不覆盖；会话占位文件未改动。');
+
+  put('target-dsh/cordis.patch.yml', '# Synthetic patch before a change\n');
+  const patchKey = path.join('target-dsh', 'cordis.patch.yml');
+  const originalPatchDigest = snapshot(demoRoot)[patchKey];
+  const backup = backupPatch(fixtureDsh);
+  assert.ok(backup);
+  put('target-dsh/cordis.patch.yml', '# Synthetic patch after a change\n');
+  const beforeRestore = snapshot(demoRoot);
+  assert.equal(restoreLatestBackup(fixtureDsh), backup);
+  assert.deepEqual(snapshot(demoRoot), { ...beforeRestore, [patchKey]: originalPatchDigest }, 'restore must change only the patch file');
+  console.log('5. 恢复：只还原 cordis.patch.yml；技能、清单、来源和会话占位文件保留。');
 } finally {
   fs.rmSync(demoRoot, { recursive: true, force: false });
   assert.equal(fs.existsSync(demoRoot), false);

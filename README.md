@@ -170,6 +170,8 @@ If you only need Claude Code command hooks in OpenCode, use the focused [opencod
 
 Conversation history belongs in [dsh-chat-import](https://github.com/Nwflower/dsh-chat-import). Configuration migration and session import are separate operations; review the selected sources, destinations, and each tool's limits. A combined workflow is not jointly validated or endorsed.
 
+See [configuration and session-import boundaries](https://github.com/sjh9714/dsh-movein/blob/main/docs/session-import-boundaries.md) before repeating or undoing either operation. Movein's `restore` restores only its patch backup; chat-import's `retract_import` removes a registry entry, not session files. Neither is a full rollback.
+
 ### Windows setup comes first
 
 If DSH cannot start PowerShell on Windows, [dsh-win32](https://github.com/sjh9714/dsh-win32) diagnoses known Windows failures and separately verifies the installed official component chain. Resolve that host problem before applying a migration. Movein does not install dsh-win32, and its success does not establish complete Minimal-session or hook-enforcement support.
