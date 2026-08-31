@@ -10,7 +10,7 @@
 
 仓库提供[可执行的合成数据示例](../demo/verify-first-migration.mjs)。它调用与产品相同的扫描、规划和应用引擎，在临时目录中真正复制文件并检查结果，不是手写“成功”输出。
 
-它特意放入两类已有目标：一份全局 instruction 和一个同名 skill。预期是保留它们，只搬入另外两个技能。项目里的 `CLAUDE.md` 保留在原地，因为 DSH 原生读取它。
+它特意放入两类已有目标：一份全局 instruction 和一个同名 skill。预期是保留它们，只搬入另外两个技能。项目里的 `CLAUDE.md` 保留在原地，因为 DSH 原生读取它。合成来源 transcript 和目标会话占位文件也必须原样保留；它们不是完整 DSH 会话。
 
 在没有同名目录的位置克隆仓库，再运行：
 
@@ -29,6 +29,8 @@ node demo/verify-first-migration.mjs
 1. 预演：2 个待搬技能，2 个已有目标保留；没有写入。
 2. 应用：2 个技能内容逐字节一致；已有目标和来源文件未改动。
 3. 再预演：0 个待搬项目；没有重复写入。
+4. 来源技能改变后再应用：已有副本不覆盖；会话占位文件未改动。
+5. 恢复：只还原 cordis.patch.yml；技能、清单、来源和会话占位文件保留。
 清理：仅删除本次创建的临时目录。
 ```
 
@@ -75,6 +77,33 @@ dsh plugin --profile web add dsh-movein
 - 想继续以前的对话时，[dsh-chat-import](https://github.com/Nwflower/dsh-chat-import) 负责会话历史；Movein 负责配置。只需要设置或只需要历史的用户不必安装两个工具。
 
 两个项目的组合流程尚未联合验证，也未获得对方背书。先分别检查来源、目标、重复导入与回滚边界，不启用未验证的自动同步。这份文档不是联合安装脚本。
+
+### 重复导入不是覆盖，也不是完整回滚
+
+需要历史时，先用 dsh-chat-import 的面板、`scan_discover` 或 `preview: true` 检查所选来源；确认后单独导入，逐条检查返回的 `status`，最后运行它的 `doctor`。不要因为 Movein 已经成功就跳过历史侧检查。
+
+以下边界限于默认追加式导入（不启用 `replace` 或自动同步），由[对方维护者确认](https://github.com/Nwflower/dsh-chat-import/discussions/32#discussioncomment-18217949)，对应源码版本为 [`f457adb`](https://github.com/Nwflower/dsh-chat-import/tree/f457adb3fc0510761e2c08fb3c99f77ec7c61cc6)：
+
+| 操作或来源变化 | 预期结果 |
+| --- | --- |
+| 来源未变，再次导入 | `already-imported`，不重复写入 |
+| 来源增加新轮次 | `appended`，追加到同一会话，保留已导入历史 |
+| 来源轮次减少 | 报告 `sourceShrunk`，不截断目标 |
+| 相同轮次内修改内容 | 可能报告 `changedInPlace` 并跳过，不应当作更新已导入历史的方式 |
+| 显式 `force: true` | 新后缀 ID 保存完整副本，旧会话保留；不是覆盖开关 |
+| 撤回并删除工件后遇到宿主残留 ID | 报告 `staleGhost`，以新后缀 ID 重新导入 |
+
+显式 `replace: true` 是另一条路径，不在上述保留约定内：该版本测试包含 Cursor 导入在同一 ID 下替换、返回 `replaced` 的行为。本文不启用它；不要把 `force` 和 `replace` 当成同一个选项。
+
+恢复范围也必须分开：
+
+- **Movein `restore`**：只恢复最新备份的 `cordis.patch.yml`，不删除已搬技能，不撤回历史导入，也不是全目录回滚。上面的复制示例还检查：来源技能后来改变时，再次应用不会覆盖已有副本；符号链接不适用这个副本结论。
+- **dsh-chat-import `retract_import`**：只移除导入登记记录并返回手动删除指引，**不会删除会话工件**。返回 `removed: true` 不代表会话文件已删除。
+- **dsh-chat-import 面板「历史」页**：确认后可删除该插件登记创建的会话；这是独立的删除操作，目前使用官方 delete API 之外的维护路径。先确认准确会话和备份需求，不要把它当作只读撤回。
+- **幽灵会话**：即使工件已删，宿主列表仍可能在重启前显示旧 ID；列表残留不等于导入又写了一份。
+- **两边的 doctor**：各自检查自己的状态；dsh-chat-import 的 `doctor` 只读，不导入、同步或删除文件。任一方体检成功都不代表完整组合流程通过。
+
+维护者已完成互链，但互链不构成相互背书。英文[独立检查与测试边界](./session-import-boundaries.md)列出了可复核的合成测试来源；这些测试不会将两套插件装进同一个真实 DSH 会话。
 
 ## 试完后，什么反馈最有用？
 
