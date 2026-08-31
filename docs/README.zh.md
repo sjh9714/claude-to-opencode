@@ -140,7 +140,7 @@ npx claude-to-opencode --apply
 - 多个 instruction 文件、glob 和远程 URL
 - 反向搬家时手写的 DSH MCP 与 hook 配置
 
-会话历史请使用 [dsh-chat-import](https://github.com/Nwflower/dsh-chat-import)。配置与历史是两项独立操作，分别检查预览和限制；组合流程尚未联合验证，也不代表对方项目背书。
+会话历史请使用 [dsh-chat-import](https://github.com/Nwflower/dsh-chat-import)。配置与历史是两项独立操作，分别确认来源、目标和各自的限制；组合流程尚未联合验证，也不代表对方项目背书。
 
 ### Windows 启动问题先处理
 

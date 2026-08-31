@@ -168,7 +168,7 @@ If you only need Claude Code command hooks in OpenCode, use the focused [opencod
 - Instruction globs, remote instruction URLs, or multiple instruction files
 - Hand-written DSH MCP and hook rows during reverse moving
 
-Conversation history belongs in [dsh-chat-import](https://github.com/Nwflower/dsh-chat-import). Configuration migration and session import are separate operations; review each tool's preview and limits. A combined workflow is not jointly validated or endorsed.
+Conversation history belongs in [dsh-chat-import](https://github.com/Nwflower/dsh-chat-import). Configuration migration and session import are separate operations; review the selected sources, destinations, and each tool's limits. A combined workflow is not jointly validated or endorsed.
 
 ### Windows setup comes first
 
