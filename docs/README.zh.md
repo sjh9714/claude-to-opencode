@@ -26,6 +26,8 @@ dsh plugin --profile web add dsh-movein
 
 重启 `dsh web`，打开 **Settings**，再选择 **Move in**。
 
+让 coding agent 帮忙时，复制[安装、预演和检查指令](https://github.com/sjh9714/dsh-movein/blob/main/docs/agent-setup.md#中文)。想先看一个不碰自己配置的例子，可以运行[合成配置的真实搬入演示](https://github.com/sjh9714/dsh-movein/blob/main/docs/first-migration.zh.md)。
+
 - Claude Code 是主路径
 - 默认只预演
 - 每一类内容都可以单独选择
@@ -138,7 +140,11 @@ npx claude-to-opencode --apply
 - 多个 instruction 文件、glob 和远程 URL
 - 反向搬家时手写的 DSH MCP 与 hook 配置
 
-会话历史请使用 [dsh-chat-import](https://github.com/Nwflower/dsh-chat-import)。
+会话历史请使用 [dsh-chat-import](https://github.com/Nwflower/dsh-chat-import)。配置与历史是两项独立操作，分别检查预览和限制；组合流程尚未联合验证，也不代表对方项目背书。
+
+### Windows 启动问题先处理
+
+如果 DSH 在 Windows 上无法启动 PowerShell，可以先用 [dsh-win32](https://github.com/sjh9714/dsh-win32) 诊断已知故障，并单独验收已安装的官方组件链。先解决 host 问题，再应用搬入。Movein 不会自动安装 dsh-win32；组件通过也不等于完整 Minimal 会话或 hook 强制执行通过。
 
 ## 项目状态
 

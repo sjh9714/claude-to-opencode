@@ -26,6 +26,8 @@ dsh plugin --profile web add dsh-movein
 
 Restart `dsh web`, open **Settings**, then choose **Move in**.
 
+Using a coding agent? [Copy the install, preview, and verification request](https://github.com/sjh9714/dsh-movein/blob/main/docs/agent-setup.md). To see a synthetic setup move without touching your own files, follow the [Chinese first-migration walkthrough](https://github.com/sjh9714/dsh-movein/blob/main/docs/first-migration.zh.md).
+
 - Claude Code is the primary path
 - Dry run is the default
 - Every category can be included or excluded
@@ -166,7 +168,11 @@ If you only need Claude Code command hooks in OpenCode, use the focused [opencod
 - Instruction globs, remote instruction URLs, or multiple instruction files
 - Hand-written DSH MCP and hook rows during reverse moving
 
-Conversation history belongs in [dsh-chat-import](https://github.com/Nwflower/dsh-chat-import).
+Conversation history belongs in [dsh-chat-import](https://github.com/Nwflower/dsh-chat-import). Configuration migration and session import are separate operations; review each tool's preview and limits. A combined workflow is not jointly validated or endorsed.
+
+### Windows setup comes first
+
+If DSH cannot start PowerShell on Windows, [dsh-win32](https://github.com/sjh9714/dsh-win32) diagnoses known Windows failures and separately verifies the installed official component chain. Resolve that host problem before applying a migration. Movein does not install dsh-win32, and its success does not establish complete Minimal-session or hook-enforcement support.
 
 ## Project status
 

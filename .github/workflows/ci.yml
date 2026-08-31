@@ -19,6 +19,8 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: node plugin/test.mjs
+      - name: documented first-migration example
+        run: node demo/verify-first-migration.mjs
 
   platform-test:
     name: platform-test (${{ matrix.os }})
@@ -36,6 +38,8 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: node plugin/test.mjs
+      - name: documented first-migration example
+        run: node demo/verify-first-migration.mjs
 
   opencode-compat:
     runs-on: ubuntu-latest
