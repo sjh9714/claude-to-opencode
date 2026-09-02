@@ -140,7 +140,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dsh: [0.1.0-rc.8, 0.1.1-rc.1, 0.1.1-rc.2]
+        dsh: [0.1.0-rc.8, 0.1.1-rc.1, 0.1.1-rc.2, 0.1.2-alpha.3, 0.1.2-alpha.4, 0.1.2-alpha.5]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -154,7 +154,7 @@ jobs:
           DSH_HOME: ${{ runner.temp }}/permissions-dsh-home
         run: |
           npm pack ./plugin --silent --pack-destination "$RUNNER_TEMP"
-          TARBALL="$RUNNER_TEMP/dsh-movein-permissions-0.2.6.tgz"
+          TARBALL="$RUNNER_TEMP/dsh-movein-permissions-0.2.7.tgz"
           test -f "$TARBALL"
 
           pnpm dlx "@deepseek-ai/dsh@$DSH_VERSION" plugin --profile web add "$TARBALL"
@@ -173,7 +173,8 @@ jobs:
 
           READY=0
           for attempt in $(seq 1 60); do
-            if curl --fail --silent --show-error http://127.0.0.1:3108/ > /dev/null; then
+            DSH_URL=$(sed -n 's/^dsh web: //p' "$RUNNER_TEMP/dsh-web.log" | tail -n 1)
+            if [ -n "$DSH_URL" ] && curl --fail --silent --show-error --cookie-jar "$RUNNER_TEMP/dsh-cookies.txt" --cookie "$RUNNER_TEMP/dsh-cookies.txt" --location "$DSH_URL" > /dev/null; then
               READY=1
               break
             fi
@@ -184,7 +185,7 @@ jobs:
             sleep 1
           done
           if [ "$READY" -ne 1 ]; then
-            cat "$RUNNER_TEMP/dsh-web.log"
+            sed -E 's/(token=)[^[:space:]]+/\1[redacted]/' "$RUNNER_TEMP/dsh-web.log"
             exit 1
           fi
 
@@ -203,7 +204,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dsh: [0.1.0-rc.8, 0.1.1-rc.1, 0.1.1-rc.2]
+        dsh: [0.1.0-rc.8, 0.1.1-rc.1, 0.1.1-rc.2, 0.1.2-alpha.3, 0.1.2-alpha.4, 0.1.2-alpha.5]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -218,7 +219,7 @@ jobs:
           DSH_HOME: ${{ runner.temp }}/movein-dsh-home
         run: |
           npm pack --silent --pack-destination "$RUNNER_TEMP"
-          TARBALL="$RUNNER_TEMP/dsh-movein-0.13.6.tgz"
+          TARBALL="$RUNNER_TEMP/dsh-movein-0.13.7.tgz"
           test -f "$TARBALL"
 
           pnpm dlx "@deepseek-ai/dsh@$DSH_VERSION" plugin --profile web add "$TARBALL"
@@ -237,7 +238,8 @@ jobs:
 
           READY=0
           for attempt in $(seq 1 60); do
-            if curl --fail --silent --show-error http://127.0.0.1:3108/ > /dev/null; then
+            DSH_URL=$(sed -n 's/^dsh web: //p' "$RUNNER_TEMP/dsh-web.log" | tail -n 1)
+            if [ -n "$DSH_URL" ] && curl --fail --silent --show-error --cookie-jar "$RUNNER_TEMP/dsh-cookies.txt" --cookie "$RUNNER_TEMP/dsh-cookies.txt" --location "$DSH_URL" > /dev/null; then
               READY=1
               break
             fi
@@ -248,7 +250,7 @@ jobs:
             sleep 1
           done
           if [ "$READY" -ne 1 ]; then
-            cat "$RUNNER_TEMP/dsh-web.log"
+            sed -E 's/(token=)[^[:space:]]+/\1[redacted]/' "$RUNNER_TEMP/dsh-web.log"
             exit 1
           fi
 

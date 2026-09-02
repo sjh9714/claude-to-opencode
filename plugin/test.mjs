@@ -11,6 +11,9 @@ assert.deepStrictEqual(manifest.dsh.compatibility.dshReleases, {
   '0.1.0-rc.8': 'compatible',
   '0.1.1-rc.1': 'compatible',
   '0.1.1-rc.2': 'compatible',
+  '0.1.2-alpha.3': 'compatible',
+  '0.1.2-alpha.4': 'compatible',
+  '0.1.2-alpha.5': 'compatible',
 })
 assert.deepStrictEqual(manifest.dsh.compatibility.profiles, ['web'])
 

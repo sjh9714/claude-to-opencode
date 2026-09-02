@@ -67,6 +67,9 @@ The DSH plugin is tested in a fresh `web` profile against every currently suppor
 | `0.1.0-rc.8` | Compatible | Compatible | Compatible |
 | `0.1.1-rc.1` | Compatible | Compatible | Compatible |
 | `0.1.1-rc.2` | Compatible | Compatible | Compatible |
+| `0.1.2-alpha.3` | Compatible | Compatible | Compatible |
+| `0.1.2-alpha.4` | Compatible | Compatible | Compatible |
+| `0.1.2-alpha.5` | Compatible | Compatible | Compatible |
 
 | Origin | What moves |
 | --- | --- |
@@ -178,7 +181,7 @@ If DSH cannot start PowerShell on Windows, [dsh-win32](https://github.com/sjh971
 
 ## Project status
 
-The CLI migration paths retain their rc.6 and rc.7 regression coverage. CI also boots a packed release inside current DSH and verifies the browser client registration and settings route against DSH `0.1.1-rc.2`.
+The CLI migration paths retain their rc.6 and rc.7 regression coverage. CI also installs, boots, and removes a packed release against every exact DSH version listed above.
 
 Listed in [awesome-dsh-plugin](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin) and [awesome-deepseek-harness](https://github.com/0xsline/awesome-deepseek-harness). The measured migration notes also appear in [dsh-handbook](https://github.com/Electricitysheep/dsh-handbook).
 

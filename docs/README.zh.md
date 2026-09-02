@@ -148,7 +148,7 @@ npx claude-to-opencode --apply
 
 ## 项目状态
 
-CLI 搬入路径保留 rc.6 与 rc.7 的回归覆盖。CI 还会把 release tarball 安装进当前 DSH，并针对 DSH `0.1.1-rc.2` 验证浏览器 client 注册和设置 route。
+CLI 搬入路径保留 rc.6 与 rc.7 的回归覆盖。CI 还会把 release tarball 分别安装进 manifest 明确列出的每个 DSH 版本，验证安装、Web 启动和卸载。
 
 ## 许可
 

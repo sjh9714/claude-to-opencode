@@ -39,6 +39,9 @@ The plugin requires Node.js 22.13 or newer and supports DSH `>=0.1.0-rc.8 <0.2.0
 | `0.1.0-rc.8` | tested | tested | tested |
 | `0.1.1-rc.1` | tested | tested | tested |
 | `0.1.1-rc.2` | tested | tested | tested |
+| `0.1.2-alpha.3` | tested | tested | tested |
+| `0.1.2-alpha.4` | tested | tested | tested |
+| `0.1.2-alpha.5` | tested | tested | tested |
 
 CI packs this plugin, installs it into a fresh temporary `DSH_HOME`, confirms the composed profile contains the plugin-owned entry, starts the Web UI on loopback and receives an HTTP response, removes the package, and confirms the entry is gone. It never touches a user profile or sends a model request. The unit suite separately verifies the permission gate itself on Windows, macOS, and Linux.
 
