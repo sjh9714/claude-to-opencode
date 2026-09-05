@@ -18,6 +18,7 @@ assert.deepStrictEqual(packageManifest.dsh.compatibility.dshReleases, {
   '0.1.2-alpha.3': 'compatible',
   '0.1.2-alpha.4': 'compatible',
   '0.1.2-alpha.5': 'compatible',
+  '0.1.2-rc.1': 'compatible',
 });
 assert.deepStrictEqual(packageManifest.dsh.compatibility.profiles, ['web']);
 assert.deepStrictEqual(packageManifest.os, ['darwin', 'linux', 'win32']);
