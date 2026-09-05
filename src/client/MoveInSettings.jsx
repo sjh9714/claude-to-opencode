@@ -16,14 +16,21 @@ async function requestMovein(payload) {
 export function MoveInSettings({ t }) {
   const [project, setProject] = useState('');
   const [origin, setOrigin] = useState('claude');
-  const [selected, setSelected] = useState(() => new Set(CATEGORIES));
+  const [selected, setSelected] = useState(() => new Set(['skills']));
   const [phase, setPhase] = useState('idle');
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
   const busy = phase === 'working';
   const include = useMemo(() => CATEGORIES.filter((id) => selected.has(id)), [selected]);
+  const canApply = !busy && result?.ok && !result.applied;
+
+  const resetPreview = () => {
+    setResult(null);
+    setError('');
+  };
 
   const toggle = (id) => {
+    resetPreview();
     setSelected((current) => {
       const next = new Set(current);
       if (next.has(id)) next.delete(id);
@@ -33,8 +40,9 @@ export function MoveInSettings({ t }) {
   };
 
   const run = async (apply) => {
+    if (apply && !canApply) return;
     setPhase('working');
-    setError('');
+    resetPreview();
     try {
       const next = await requestMovein({ project, origin, apply, include });
       setResult(next);
@@ -59,7 +67,8 @@ export function MoveInSettings({ t }) {
           id="dmi-project"
           className="dmi-input"
           value={project}
-          onChange={(event) => setProject(event.target.value)}
+          disabled={busy}
+          onChange={(event) => { setProject(event.target.value); resetPreview(); }}
           placeholder="C:\\work\\project"
           spellCheck="false"
         />
@@ -71,11 +80,12 @@ export function MoveInSettings({ t }) {
         <div className="dmi-grid">
           {CATEGORIES.map((id) => (
             <label className="dmi-choice" key={id}>
-              <input type="checkbox" checked={selected.has(id)} onChange={() => toggle(id)} />
+              <input type="checkbox" disabled={busy} checked={selected.has(id)} onChange={() => toggle(id)} />
               <span>{t(id)}</span>
             </label>
           ))}
         </div>
+        <p className="dmi-hint">{t('firstTry')}</p>
       </fieldset>
 
       <details className="dmi-details">
@@ -84,7 +94,11 @@ export function MoveInSettings({ t }) {
         <div className="dmi-origins">
           {['claude', 'codex', 'opencode'].map((id) => (
             <label className="dmi-origin" key={id}>
-              <input type="radio" name="dmi-origin" checked={origin === id} onChange={() => setOrigin(id)} />
+              <input type="radio" name="dmi-origin" disabled={busy} checked={origin === id} onChange={() => {
+                setOrigin(id);
+                setSelected(new Set(id === 'codex' ? ['instructions'] : ['skills']));
+                resetPreview();
+              }} />
               <span>{t(id)}</span>
             </label>
           ))}
@@ -95,7 +109,7 @@ export function MoveInSettings({ t }) {
         <button className="dmi-button" type="button" disabled={busy || include.length === 0} onClick={() => run(false)}>
           {busy ? t('working') : t('preview')}
         </button>
-        <button className="dmi-button dmi-primary" type="button" disabled={busy || include.length === 0} onClick={() => run(true)}>
+        <button className="dmi-button dmi-primary" type="button" disabled={!canApply || include.length === 0} onClick={() => run(true)}>
           {t('apply')}
         </button>
         <span className="dmi-hint">{t('dryRun')}</span>
@@ -135,6 +149,15 @@ export function MoveInSettings({ t }) {
             <summary>{t('fullReport')}</summary>
             <pre>{result.report}</pre>
           </details>
+          {result.ok && result.applied && result.actions.some((action) => action.status === 'done') && (
+            <div className="dmi-block">
+              <h3>{t('nextTitle')}</h3>
+              <p className="dmi-hint">{t('nextSteps')}</p>
+              <a href="https://github.com/sjh9714/dsh-movein/blob/main/docs/first-task.md" target="_blank" rel="noreferrer">
+                {t('firstTask')}
+              </a>
+            </div>
+          )}
           {result.starPrompt && (
             <a className="dmi-star" href="https://github.com/sjh9714/dsh-movein" target="_blank" rel="noreferrer">
               {t('star')}

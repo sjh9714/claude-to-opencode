@@ -8,13 +8,13 @@
   <a href="../LICENSE"><img alt="MIT" src="https://img.shields.io/badge/license-MIT-2EA44F?style=flat-square"></a>
 </p>
 
-把 Claude Code 环境搬进 [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness)，不用重新手工配置。
+**用已有配置试试 [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness)。**
 
-先查看指令、技能、命令、子代理、hooks、权限规则和 MCP 的所有变化，再决定是否写入。已有目标不会被覆盖。
+继续使用 Claude Code，同时在 DSH 里试试熟悉的技能。先预览，选择要应用的类别，再在新会话中完成一项小任务。来源文件与已有目标保持不变。
 
 ![DSH 原生设置页预览并应用 Claude Code 环境](./settings-demo.gif)
 
-这个 GIF 使用真实 DSH `0.1.1-rc.2` 运行中的两张截图。第一张是预演，第二张是应用结果。
+这是 macOS 上真实 DSH `0.1.2-rc.1` Web host 与 dsh-movein `0.13.8` 的录屏，使用合成项目展示预览与应用。来源文件保持不变，迁入技能已逐字节核对；未运行模型任务。[完整录屏](./settings-demo.webm)。
 
 如果它节省了配置时间，欢迎 [Star dsh-movein](https://github.com/sjh9714/dsh-movein)。
 
@@ -29,12 +29,19 @@ dsh plugin --profile web add dsh-movein
 让 coding agent 帮忙时，复制[安装、预演和检查指令](https://github.com/sjh9714/dsh-movein/blob/main/docs/agent-setup.md#中文)。想先看一个不碰自己配置的例子，可以运行[合成配置的真实搬入演示](https://github.com/sjh9714/dsh-movein/blob/main/docs/first-migration.zh.md)。
 
 - Claude Code 是主路径
-- 默认只预演
+- 0.13.8+ 设置页默认只选择技能；Codex 默认选择指令
+- 成功预览后才能应用；更改目录、来源或类别后需要重新预览
 - 每一类内容都可以单独选择
 - 冲突与不支持内容会在应用前显示
 - Codex 和 OpenCode 保留在次级来源面板
 
 插件也会注册 `movein_from_claude_code` 与 `movein_from_opencode`。两个工具默认只预演，确认后传入 `apply=true`。
+
+## 完成第一项小任务
+
+应用后，在同一项目中新建 DSH 会话，让它用一个迁入的技能完成小任务。检查技能是否真正加载、结果是否遵循技能指令。见[第一次任务指南](./first-task.md#中文)。
+
+我们正在寻找 **5 位首次试用者**。卡住也有价值：请[告诉我们目标与停止的位置](https://github.com/sjh9714/dsh-movein/issues/new?template=first-run.md)，注明实际安装版本。安装成功不等于任务成功。
 
 ## 使用 CLI
 
@@ -107,6 +114,8 @@ dsh --profile web --dump-config | grep -E "mcp-|cc-hooks"
 ```
 
 `doctor` 只做静态检查，不执行任何用户 hook，也不改写 Claude 设置。它会区分“bridge 与依赖已经接好”和“运行时强制已经验证”：前者可以自动确认，后者必须在临时项目的新 DSH session 里用无害的 exit-2 deny canary 验证。当前 DSH 会记录但不会执行 `{"continue":false}`；Windows PowerShell 还可能吞掉原生子进程的 exit 2。详细限制与 canary 步骤见[兼容性表](./compat.md#verify-hook-enforcement-after-moving)。
+
+`doctor --live` 需要 `DSH_HOME/profiles` 下已有可见的运行时；DSH `0.1.2-rc.1` 在第一次正常启动 Web 时创建这些链接，单独 dump 不会创建。缺少时检查会停止，不会自动下载或启动迁移配置。它仅为隔离的官方基线处理一次跳转到同源 `/` 的登录响应，临时 cookie 只留在内存中用于 HTML 和 JavaScript 检查，不写盘、不输出，也不跟随其他跳转。
 
 技能目录按 session 固定，所以搬完后请新建 DSH session。
 

@@ -112,9 +112,6 @@ jobs:
         run: |
           pnpm dlx @deepseek-ai/dsh --profile web --dump-config > composed.txt
           grep -q "dsh-movein" composed.txt
-      - name: live doctor preserves the installed profile
-        timeout-minutes: 5
-        run: node bin/cli.mjs doctor --live
       - name: OpenCode environment placeholders boot in DSH
         env:
           OPENCODE_CONFIG: ${{ runner.temp }}/opencode.json
@@ -140,7 +137,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dsh: [0.1.0-rc.8, 0.1.1-rc.1, 0.1.1-rc.2, 0.1.2-alpha.3, 0.1.2-alpha.4, 0.1.2-alpha.5]
+        dsh: [0.1.0-rc.8, 0.1.1-rc.1, 0.1.1-rc.2, 0.1.2-alpha.3, 0.1.2-alpha.4, 0.1.2-alpha.5, 0.1.2-rc.1]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -204,7 +201,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dsh: [0.1.0-rc.8, 0.1.1-rc.1, 0.1.1-rc.2, 0.1.2-alpha.3, 0.1.2-alpha.4, 0.1.2-alpha.5]
+        dsh: [0.1.0-rc.8, 0.1.1-rc.1, 0.1.1-rc.2, 0.1.2-alpha.3, 0.1.2-alpha.4, 0.1.2-alpha.5, 0.1.2-rc.1]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -219,7 +216,7 @@ jobs:
           DSH_HOME: ${{ runner.temp }}/movein-dsh-home
         run: |
           npm pack --silent --pack-destination "$RUNNER_TEMP"
-          TARBALL="$RUNNER_TEMP/dsh-movein-0.13.7.tgz"
+          TARBALL="$RUNNER_TEMP/dsh-movein-0.13.8.tgz"
           test -f "$TARBALL"
 
           pnpm dlx "@deepseek-ai/dsh@$DSH_VERSION" plugin --profile web add "$TARBALL"
@@ -256,6 +253,11 @@ jobs:
 
           cleanup
           trap - EXIT
+          # rc.1 creates its runtime fallback links on first boot, not on a
+          # boot-free config dump. Check the latest host after that real boot.
+          if [ "$DSH_VERSION" = "0.1.2-rc.1" ]; then
+            node bin/cli.mjs doctor --live
+          fi
           pnpm dlx "@deepseek-ai/dsh@$DSH_VERSION" plugin --profile web remove dsh-movein
           pnpm dlx "@deepseek-ai/dsh@$DSH_VERSION" --profile web --dump-config > "$RUNNER_TEMP/composed-after.yml"
           if grep -q "dsh-movein" "$RUNNER_TEMP/composed-after.yml"; then

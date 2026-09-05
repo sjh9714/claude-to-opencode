@@ -8,13 +8,13 @@
   <a href="LICENSE"><img alt="MIT" src="https://img.shields.io/badge/license-MIT-2EA44F?style=flat-square"></a>
 </p>
 
-Migrate your Claude Code setup into [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness) without rebuilding it by hand.
+**Try [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness) with the setup you already use.**
 
-Preview instructions, skills, commands, agents, hooks, permission rules, and MCP servers before DSH writes anything. Existing destinations stay untouched.
+Keep using Claude Code while you try its skills in DSH. Preview the changes, apply the parts you choose, and start a small task in a new DSH session. Source files and existing destinations stay untouched.
 
 ![The native DSH settings page previews and applies a Claude Code setup](./docs/settings-demo.gif)
 
-This GIF uses two screenshots from a live DSH `0.1.1-rc.2` run. The first shows the dry run and the second shows the applied result.
+Recorded from a real DSH `0.1.2-rc.1` Web host on macOS with a synthetic project and dsh-movein `0.13.8`. It shows preview and apply; the source was preserved and the imported skill was checked byte-for-byte. No model task ran. [Full screen recording](https://github.com/sjh9714/dsh-movein/blob/main/docs/settings-demo.webm).
 
 If this saves you setup time, [star dsh-movein](https://github.com/sjh9714/dsh-movein).
 
@@ -29,16 +29,21 @@ Restart `dsh web`, open **Settings**, then choose **Move in**.
 Using a coding agent? [Copy the install, preview, and verification request](https://github.com/sjh9714/dsh-movein/blob/main/docs/agent-setup.md). To see a synthetic setup move without touching your own files, follow the [Chinese first-migration walkthrough](https://github.com/sjh9714/dsh-movein/blob/main/docs/first-migration.zh.md).
 
 - Claude Code is the primary path
-- Dry run is the default
+- Settings 0.13.8+ starts with Skills selected; Codex starts with Instructions
+- Apply becomes available after a successful preview; changing the folder, origin, or categories requires a new preview
 - Every category can be included or excluded
 - Conflicts and unsupported entries appear before apply
 - Codex and OpenCode stay available under the secondary origin panel
 
 The same plugin also registers `movein_from_claude_code` and `movein_from_opencode` for model-driven use. Both tools stay dry until `apply=true`.
 
-## Use the CLI
+## Finish one small task
 
-## Pick your origin
+After applying, open a new DSH session in the same project and ask it to use one imported skill for a small task. Check that the skill was loaded and that its instructions affected the result. The Settings page links to the [first-task walkthrough](https://github.com/sjh9714/dsh-movein/blob/main/docs/first-task.md), including the separate Codex path.
+
+We are looking for **five first-run testers**. A blocked attempt is useful too: [share what you tried and where it stopped](https://github.com/sjh9714/dsh-movein/issues/new?template=first-run.md). Use the version actually installed in your profile; successful installation alone does not establish a working task.
+
+## Use the CLI
 
 ```sh
 # Claude Code
@@ -70,6 +75,7 @@ The DSH plugin is tested in a fresh `web` profile against every currently suppor
 | `0.1.2-alpha.3` | Compatible | Compatible | Compatible |
 | `0.1.2-alpha.4` | Compatible | Compatible | Compatible |
 | `0.1.2-alpha.5` | Compatible | Compatible | Compatible |
+| `0.1.2-rc.1` | Compatible | Compatible | Compatible |
 
 | Origin | What moves |
 | --- | --- |
@@ -122,6 +128,8 @@ npx dsh-movein doctor --live
 
 `doctor` checks recorded destinations, skill frontmatter, required packages, and a matching Claude Code hook bridge row for every settings file that contains supported command hooks. It also names hook configurations that cannot enforce what they appear to enforce: events outside DSH's seven mapped events, non-command handlers, uppercase Claude tool matcher alternatives, the current `{"continue":false}` control-flow gap, and the Windows PowerShell native-child exit-code gap. It never executes a user hook. Matching bridge rows and resolvable packages prove wiring only; `doctor` prints a disposable deny-canary reminder before you rely on hooks as a policy boundary.
 `doctor --live` never activates the migrated configuration. It requires an already-installed `@deepseek-ai/dsh` `0.1.1-rc.2` or newer and first proves the boot-free `web --dump-config` contract in a separate disposable snapshot containing only the official `@deepseek-ai/dsh-base` and `@deepseek-ai/dsh-web-app` bundles and empty patch layers. Only after that succeeds does it ask DSH to compose the active migration snapshot. Both dumps must return a bounded, non-empty config with the expected sectioned YAML-list shape; their output is discarded and never printed. It then resets the active snapshot to the same official base/web-only configuration, boots it on an OS-assigned loopback port, and verifies its HTML boot wire and one same-origin JavaScript bundle. Static `doctor` checks the migrated package references separately.
+
+The installed runtime must be visible under `DSH_HOME/profiles`; DSH `0.1.2-rc.1` creates these runtime links during its first normal Web boot, not a config dump. If they are absent, the doctor stops without downloading or bootstrapping anything. It handles the isolated server's launch-token exchange with one same-origin redirect to `/` and a temporary in-memory cookie for its HTML and JavaScript probes. Other redirects are not followed; the cookie is never saved or printed.
 
 No DSH download, model, or API credential is used. Child processes receive only a small OS, `PATH`, and locale allowlist; home, application-data, XDG, cache, and temporary paths all point inside the disposable snapshot. Shutdown signals the retained direct child handle and success requires observing that child exit and the loopback port become unreachable. It does not issue PID-tree kill commands. If child termination cannot be confirmed, the snapshot is preserved and the live check fails. Live checking requires the DSH-supported Node 22.19+ or 24+ runtime; Node 23 is rejected before any child starts.
 

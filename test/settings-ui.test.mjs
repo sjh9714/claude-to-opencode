@@ -66,10 +66,35 @@ let registered;
 const require = createRequire(import.meta.url);
 vm.runInNewContext(client, {
   window: { __ModuleLoader__: { load(spec) { registered = { id: spec.id, exports: spec.factory(require) }; } } },
+  document: {
+    createElement: () => ({ setAttribute() {}, remove() {} }),
+    head: { appendChild() {} },
+  },
   console,
 });
 assert.strictEqual(registered.id, 'dsh-movein');
 assert.strictEqual(typeof registered.exports.apply, 'function');
 assert.deepStrictEqual(Array.from(registered.exports.inject), ['slots', 'locale']);
+
+let SettingsPage;
+let messages;
+registered.exports.apply({
+  effect: (run) => run(),
+  locale: {
+    register: (_namespace, dictionaries) => { messages = dictionaries.en; },
+    bind: () => (key) => messages[key],
+  },
+  slots: {
+    inject: (_name, mount) => mount(),
+    register: (_slot, Page) => { SettingsPage = Page; return () => {}; },
+  },
+  on: () => () => {},
+});
+const React = require('react');
+const { renderToStaticMarkup } = require('react-dom/server');
+const initialPage = renderToStaticMarkup(React.createElement(SettingsPage, { t: (key) => messages[key] }));
+assert.equal((initialPage.match(/type="checkbox" checked=""/g) ?? []).length, 1, 'first try selects one category');
+assert.match(initialPage, /type="checkbox" checked=""\/><span>Skills<\/span>/);
+assert.match(initialPage, /<button[^>]*disabled=""[^>]*>Apply selected<\/button>/, 'a first apply needs a preview');
 
 console.log('settings UI tests passed');
