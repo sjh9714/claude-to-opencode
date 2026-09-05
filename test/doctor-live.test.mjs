@@ -150,6 +150,22 @@ process.on('SIGINT', stop);
 if (mode === 'timeout' || mode === 'stubborn') setInterval(() => {}, 1000);
 else {
   server = http.createServer((request, response) => {
+    if (mode.startsWith('auth-')) {
+      if (request.url.includes('token=') || mode === 'auth-loop') {
+        response.writeHead(303, {
+          location: mode === 'auth-foreign' ? 'http://127.0.0.1:1/' : '/',
+          'set-cookie': 'dsh_probe=private-auth-cookie; HttpOnly; Path=/; SameSite=Strict',
+        });
+        response.end();
+        return;
+      }
+      if (request.headers.cookie !== 'dsh_probe=private-auth-cookie') {
+        response.writeHead(401);
+        response.end();
+        return;
+      }
+      fs.appendFileSync(marker, 'authenticated request\\n');
+    }
     if (request.url.startsWith('/plugins/fake/client.js')) {
       fs.appendFileSync(marker, 'asset fetched\\n');
       response.statusCode = 200;
@@ -169,7 +185,7 @@ else {
     response.end('<!doctype html><script>globalThis["__DSH_BOOT__"] = ' + wire + '</script>');
   });
   server.listen(0, '127.0.0.1', () => {
-    console.log('dsh web: http://127.0.0.1:' + server.address().port);
+    console.log('dsh web: http://127.0.0.1:' + server.address().port + (mode.startsWith('auth-') ? '/?token=private-launch-token' : ''));
     if (mode === 'exit-before-readiness') setTimeout(() => process.exit(0), 50);
   });
 }
@@ -243,6 +259,22 @@ try {
   assert.doesNotMatch(JSON.stringify(success), /inline-secret-never-send/, 'captured composition output must never be reported');
   assert.strictEqual(fs.readFileSync(path.join(profile, 'cordis.yml'), 'utf8'), 'original profile root\n', 'live checks must not rewrite the source profile');
   assert.ok(fs.existsSync(path.join(profile, 'node_modules', 'probe-package', 'package.json')), 'snapshot cleanup must not traverse the source node_modules link');
+
+  reset('auth-redirect');
+  const authenticated = await runFakeDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 2_000, shutdownTimeoutMs: 1_000 });
+  assert.deepStrictEqual(authenticated.map((check) => check.level), ['ok', 'ok', 'ok']);
+  assert.equal((fs.readFileSync(marker, 'utf8').match(/authenticated request/g) || []).length, 2, 'HTML and same-origin JavaScript use the temporary cookie');
+  assert.doesNotMatch(JSON.stringify(authenticated), /private-auth-cookie|private-launch-token/);
+  assert.ok(!fs.existsSync(mcpMarker));
+
+  for (const mode of ['auth-foreign', 'auth-loop']) {
+    reset(mode);
+    const rejected = await runFakeDoctor({ dshHome: fakeHome, env: envFor(), timeoutMs: 750, shutdownTimeoutMs: 1_000 });
+    assert.equal(rejected.at(-1).level, 'bad');
+    assert.match(rejected.at(-1).note, /last HTTP 303/);
+    assert.doesNotMatch(JSON.stringify(rejected), /private-auth-cookie|private-launch-token/);
+    assert.doesNotMatch(fs.readFileSync(marker, 'utf8'), /asset fetched/);
+  }
 
   const missingHome = path.join(root, 'missing');
   fs.mkdirSync(missingHome);

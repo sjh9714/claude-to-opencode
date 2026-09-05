@@ -115,6 +115,8 @@ dsh --profile web --dump-config | grep -E "mcp-|cc-hooks"
 
 `doctor` 只做静态检查，不执行任何用户 hook，也不改写 Claude 设置。它会区分“bridge 与依赖已经接好”和“运行时强制已经验证”：前者可以自动确认，后者必须在临时项目的新 DSH session 里用无害的 exit-2 deny canary 验证。当前 DSH 会记录但不会执行 `{"continue":false}`；Windows PowerShell 还可能吞掉原生子进程的 exit 2。详细限制与 canary 步骤见[兼容性表](./compat.md#verify-hook-enforcement-after-moving)。
 
+`doctor --live` 需要 `DSH_HOME/profiles` 下已有可见的运行时；DSH `0.1.2-rc.1` 在第一次正常启动 Web 时创建这些链接，单独 dump 不会创建。缺少时检查会停止，不会自动下载或启动迁移配置。它仅为隔离的官方基线处理一次跳转到同源 `/` 的登录响应，临时 cookie 只留在内存中用于 HTML 和 JavaScript 检查，不写盘、不输出，也不跟随其他跳转。
+
 技能目录按 session 固定，所以搬完后请新建 DSH session。
 
 ## Claude Code 双栖
