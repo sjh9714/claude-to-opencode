@@ -1,7 +1,7 @@
 {
   "name": "dsh-movein",
-  "version": "0.13.7",
-  "description": "Migrate Claude Code setup into DeepSeek Harness. Import skills, commands, agents, hooks, permission rules, and MCP config. Codex and OpenCode supported.",
+  "version": "0.13.8",
+  "description": "Try DeepSeek Harness with your existing Claude Code setup. Preview skills and configuration before applying. Codex and OpenCode supported.",
   "license": "MIT",
   "type": "module",
   "main": "shell/index.mjs",
@@ -32,7 +32,8 @@
         "0.1.1-rc.2": "compatible",
         "0.1.2-alpha.3": "compatible",
         "0.1.2-alpha.4": "compatible",
-        "0.1.2-alpha.5": "compatible"
+        "0.1.2-alpha.5": "compatible",
+        "0.1.2-rc.1": "compatible"
       },
       "profiles": [
         "web"
@@ -46,6 +47,7 @@
     "cordis.patch.yml",
     "README.md",
     "docs/README.zh.md",
+    "docs/first-task.md",
     "docs/settings-demo.gif",
     "docs/settings-import.jpg",
     "docs/settings-applied.jpg"

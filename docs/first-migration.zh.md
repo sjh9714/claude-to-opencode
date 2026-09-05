@@ -67,7 +67,7 @@ dsh plugin --profile web add dsh-movein
 
 ![来自真实 DSH 运行的预演与应用截图](./settings-demo.gif)
 
-上图是已有的 DSH `0.1.1-rc.2` 两张真实截图组成的 GIF，不是本次新录制的视频。`doctor --live` 检查配置组合及安全的官方基线，不启动迁移后的 hooks，也不证明它们能阻止危险操作。
+上图来自 macOS 上 DSH `0.1.2-rc.1` 与 dsh-movein `0.13.8` 的真实设置页录屏，展示合成技能的预览与应用；未运行模型任务。应用后可按[第一次任务指南](./first-task.md#中文)另行验证实际使用。`doctor --live` 检查配置组合及安全的官方基线，不启动迁移后的 hooks，也不证明它们能阻止危险操作。
 
 如果 pnpm 的发布等待期导致安装到较早版本，保留政策并稍后重试；不要降低 `minimumReleaseAge`。native-loader 故障与版本选择是不同问题，参见 [README 中的已知边界](../README.md#after-moving)。
 
